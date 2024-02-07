@@ -30,14 +30,16 @@
     - role: geerlingguy.ntp
       vars:
         ntp_daemon: chronyd
-        ntp_timezone: "America/New_York"
+        ntp_timezone: "Europe/Rome"
         ntp_enabled: true
         ntp_config_file: /etc/chrony.conf
         ntp_manage_config: true
         ntp_servers:
-          - "ntp0.cac.cornell.edu iburst"
-          - "ntp1.cac.cornell.edu iburst"
-          - "ntp2.cac.cornell.edu iburst"
+          - "it.pool.ntp.org iburst"
+          - "0.it.pool.ntp.org iburst"
+          - "1.it.pool.ntp.org iburst"
+          - "2.it.pool.ntp.org iburst"
+          - "3.it.pool.ntp.org iburst"
         ntp_cron_handler_enabled: true
 
   handlers:
@@ -48,7 +50,7 @@
         enabled: true
 
     - name: restart slurmctld
-      service: 
+      service:
         name: slurmctld
         state: restarted
         enabled: true
@@ -144,7 +146,7 @@
         name: "{{ mysql_user }}"
         host: localhost
         password: "{{ mysql_password }}"
-        priv: 
+        priv:
           'slurm_acct_db.*': 'ALL,GRANT'
         state: present
 
@@ -183,7 +185,7 @@
         mode: 0755
 
     - name: Increase the number of munge daemons to 10
-      copy: 
+      copy:
         dest: /etc/sysconfig/munge
         owner: root
         group: root

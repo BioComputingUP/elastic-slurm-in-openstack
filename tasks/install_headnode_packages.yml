@@ -29,3 +29,15 @@
   dnf: 
     name: "{{ head_node_user_packages }}"
     state: present
+
+- name: Install firewalld
+  dnf:
+    name:
+    - python3-firewall
+    - firewalld
+    state: present
+
+- name: Ensure firewalld is running
+  service:
+    name: firewalld
+    state: started
