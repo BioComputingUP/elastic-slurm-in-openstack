@@ -6,36 +6,40 @@
 
   tasks: 
     - name: Create cluster private network
-      os_network: 
+      os_network:
         name: "{{ cluster_network_name }}"
         state: present
+      when: setup_network is defined and setup_network is truthy
 
     - name: Create subnet for cluster network
       os_subnet:
         name: "{{ cluster_network_name }}"
         network_name: "{{ cluster_network_name }}"
         cidr: "{{ cluster_network_cidr }}"
-        allocation_pool_start: "{{ cluster_network_allocation_pool_start }}"     
+        allocation_pool_start: "{{ cluster_network_allocation_pool_start }}"
         allocation_pool_end: "{{ cluster_network_allocation_pool_end }}"
         dns_nameservers: "{{ cluster_network_dns_servers }}"
         state: present
+      when: setup_network is defined and setup_network is truthy
 
     - name: Create a router to connect cluster network to internet
-      os_router: 
+      os_router:
         name: "{{ cluster_network_router }}"
         admin_state_up: true
-        network: "public" 
+        network: "public"
         interfaces:
           - "{{ cluster_network_name }}"
-        state: present 
+        state: present
+      when: setup_network is defined and setup_network is truthy
 
     - name: Create security group for the cluster
       openstack.cloud.security_group:
         name: "{{ cluster_security_group }}"
         description: "Security Group for {{ cluster_name }}"
         state: present
+      when: setup_network is defined and setup_network is truthy
 
-    - name: Add security group access rule to allow ssh 
+    - name: Add security group access rule to allow ssh
       openstack.cloud.security_group_rule:
         security_group: "{{ cluster_security_group }}"
         port_range_min: 22
@@ -43,6 +47,7 @@
         protocol: tcp
         remote_ip_prefix: "{{ cluster_network_ssh_access }}"
         state: present
+      when: setup_network is defined and setup_network is truthy
 
     - name: Add security group access rule to allow access within group
       openstack.cloud.security_group_rule:
@@ -50,12 +55,14 @@
         protocol: any
         remote_group: "{{ cluster_security_group }}"
         state: present
+      when: setup_network is defined and setup_network is truthy
 
     - name: Add ssh keypair
       os_keypair:
         name: "{{ keypair_name }}"
         public_key_file: "{{ ssh_public_keyfile }}"
         state: present
+      when: setup_network is defined and setup_network is truthy
 
     - name: Create boot volume for head node
       os_volume:
