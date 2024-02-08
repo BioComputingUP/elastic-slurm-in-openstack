@@ -67,12 +67,6 @@
         state: restarted
         enabled: true
 
-    - name: restart openvpn
-      service:
-        name: openvpn@biocompup
-        state: restarted
-        enabled: true
-
   tasks:
 #    - import_tasks: tasks/install_openstack_client.yml
 #
@@ -226,5 +220,29 @@
 #          input(type="imudp" port="514")
 #      notify: restart rsyslog
 
-    - import_tasks: tasks/install_openvpn.yml
+#    - import_tasks: tasks/install_openvpn.yml
 
+    - name: Ensures ~/.config/openstack dir exists
+      file:
+        path: /root/.config/openstack
+        mode: 0755
+        state: directory
+
+    - name: Copy clouds.yaml
+      ansible.builtin.copy:
+        src: clouds.yaml
+        dest: /root/.config/openstack/clouds.yaml
+
+   # - name: Get server facts
+   #   openstack.cloud.server_info:
+   #     cloud: cloudveneto
+   #     interface: "public"
+   #     server: "{{ head_node_name }}"
+      
+    - name: Detach floating IP from headnode
+      openstack.cloud.floating_ip:
+        cloud: cloudveneto
+        state: absent
+        floating_ip_address: "{{ inventory_hostname }}"
+        network: "{{ cluster_network_floating_ip_pool }}"
+        server: "{{ head_node_name }}"
