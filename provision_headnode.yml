@@ -12,35 +12,35 @@
     - ./vars/main.yml
 
   roles:
-    - role: geerlingguy.nfs
-      vars:
-        nfs_exports:
-          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-      when: not install_intel_oneapi
-
-    - role: geerlingguy.nfs
-      vars:
-        nfs_exports:
-          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/opt/intel {{ cluster_network_cidr }}(ro,no_root_squash)"
-      when: install_intel_oneapi
-
-    - role: geerlingguy.ntp
-      vars:
-        ntp_daemon: chronyd
-        ntp_timezone: "Europe/Rome"
-        ntp_enabled: true
-        ntp_config_file: /etc/chrony.conf
-        ntp_manage_config: true
-        ntp_servers:
-          - "it.pool.ntp.org iburst"
-          - "0.it.pool.ntp.org iburst"
-          - "1.it.pool.ntp.org iburst"
-          - "2.it.pool.ntp.org iburst"
-          - "3.it.pool.ntp.org iburst"
-        ntp_cron_handler_enabled: true
+#    - role: geerlingguy.nfs
+#      vars:
+#        nfs_exports:
+#          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
+#          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
+#      when: not install_intel_oneapi
+#
+#    - role: geerlingguy.nfs
+#      vars:
+#        nfs_exports:
+#          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
+#          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
+#          - "/opt/intel {{ cluster_network_cidr }}(ro,no_root_squash)"
+#      when: install_intel_oneapi
+#
+#    - role: geerlingguy.ntp
+#      vars:
+#        ntp_daemon: chronyd
+#        ntp_timezone: "Europe/Rome"
+#        ntp_enabled: true
+#        ntp_config_file: /etc/chrony.conf
+#        ntp_manage_config: true
+#        ntp_servers:
+#          - "it.pool.ntp.org iburst"
+#          - "0.it.pool.ntp.org iburst"
+#          - "1.it.pool.ntp.org iburst"
+#          - "2.it.pool.ntp.org iburst"
+#          - "3.it.pool.ntp.org iburst"
+#        ntp_cron_handler_enabled: true
 
   handlers:
     - name: restart slurmdbd
@@ -68,157 +68,157 @@
         enabled: true
 
   tasks:
-    - import_tasks: tasks/install_openstack_client.yml
-
-    - import_tasks: tasks/install_headnode_packages.yml
-
-    - import_tasks: tasks/install_oneapi.yml
-      when: install_intel_oneapi
-
-    - name: Increase memlock
-      blockinfile:
-        path: /etc/security/limits.conf
-        insertbefore: '# End of file'
-        block: |
-          * soft memlock unlimited
-          * hard memlock unlimited
-
-    - name: Allow incoming traffic from cluster network
-      ansible.posix.firewalld:
-        source: "{{ cluster_network_cidr }}"
-        zone: trusted
-        state: enabled
-        permanent: true
-        immediate: true
-
-    - name: Upload cluster-env script and profiles
-      copy:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-        owner: root
-        group: root
-        mode: '0755'
-      with_items:
-        - { src: cluster-env.sh, dest: /etc/profile.d/cluster-env.sh }
-        - { src: cluster-env.csh, dest: /etc/profile.d/cluster-env.csh }
-        - { src: cluster-env, dest: /usr/bin/cluster-env }
-
-    - name: Create /var/log/slurm
-      file:
-        path: /var/log/slurm
-        owner: slurm
-        group: slurm
-        mode: 0700
-        state: directory
-
-    - name: Copy openrc file
-      template:
-        src: openrc.sh.j2
-        dest: /etc/slurm/openrc.sh
-        owner: slurm
-        group: slurm
-        mode: 0600
-
-    - name: Install MariaDB
-      dnf:
-        name:
-          - mariadb-server
-        state: present
-
-    - name: Start MariaDB
-      service:
-        name: mariadb
-        state: started
-        enabled: true
-
-    - name: Install PyMySQL
-      package:
-        name: python3-PyMySQL
-        state: present
-
-    - name: Create slurm_acct_db MySQL database
-      community.mysql.mysql_db:
-        name: slurm_acct_db
-        state: present
-
-    - name: Create slurm user in MySQL database
-      community.mysql.mysql_user:
-        name: "{{ mysql_user }}"
-        host: localhost
-        password: "{{ mysql_password }}"
-        priv:
-          'slurm_acct_db.*': 'ALL,GRANT'
-        state: present
-
-    - name: Configure slurmdbd
-      template:
-        src: slurmdbd.conf.j2
-        dest: /etc/slurm/slurmdbd.conf
-        owner: slurm
-        group: slurm
-        mode: 0600
-      notify: restart slurmdbd
-
-    - name: Copy slurm.conf
-      template:
-        src: slurm.conf.j2
-        dest: /etc/slurm/slurm.conf
-        owner: root
-        group: root
-        mode: 0644
-      notify: restart slurmctld
-
-    - name: Copy slurm_resume.sh
-      template:
-        src: slurm_resume.sh.j2
-        dest: /usr/local/sbin/slurm_resume.sh
-        owner: root
-        group: root
-        mode: 0755
-
-    - name: Copy slurm_suspend.sh
-      template:
-        src: slurm_suspend.sh.j2
-        dest: /usr/local/sbin/slurm_suspend.sh
-        owner: root
-        group: root
-        mode: 0755
-
-    - name: Increase the number of munge daemons to 10
-      copy:
-        dest: /etc/sysconfig/munge
-        owner: root
-        group: root
-        mode: 0644
-        content: |
-          DAEMON_ARGS="--key-file /etc/munge/munge.key --num-threads 10"
-
-    - name: Start slurmctld, slurmdbd, and munge
-      service:
-        name: "{{ item }}"
-        state: started
-        enabled: true
-      with_items:
-        - slurmctld
-        - slurmdbd
-        - munge
-
-    - name: Gather munge.key
-      fetch:
-        src: /etc/munge/munge.key
-        dest: ./files/munge.key
-        flat: yes
-
-    - name: Configure rsyslog to accept syslog from compute nodes
-      blockinfile:
-        path: /etc/rsyslog.d/ohpc.conf
-        insertbefore: EOF
-        create: true
-        state: present
-        block: |
-          module(load="imudp")
-          input(type="imudp" port="514")
-      notify: restart rsyslog
+#    - import_tasks: tasks/install_openstack_client.yml
+#
+#    - import_tasks: tasks/install_headnode_packages.yml
+#
+#    - import_tasks: tasks/install_oneapi.yml
+#      when: install_intel_oneapi
+#
+#    - name: Increase memlock
+#      blockinfile:
+#        path: /etc/security/limits.conf
+#        insertbefore: '# End of file'
+#        block: |
+#          * soft memlock unlimited
+#          * hard memlock unlimited
+#
+#    - name: Allow incoming traffic from cluster network
+#      ansible.posix.firewalld:
+#        source: "{{ cluster_network_cidr }}"
+#        zone: trusted
+#        state: enabled
+#        permanent: true
+#        immediate: true
+#
+#    - name: Upload cluster-env script and profiles
+#      copy:
+#        src: "{{ item.src }}"
+#        dest: "{{ item.dest }}"
+#        owner: root
+#        group: root
+#        mode: '0755'
+#      with_items:
+#        - { src: cluster-env.sh, dest: /etc/profile.d/cluster-env.sh }
+#        - { src: cluster-env.csh, dest: /etc/profile.d/cluster-env.csh }
+#        - { src: cluster-env, dest: /usr/bin/cluster-env }
+#
+#    - name: Create /var/log/slurm
+#      file:
+#        path: /var/log/slurm
+#        owner: slurm
+#        group: slurm
+#        mode: 0700
+#        state: directory
+#
+#    - name: Copy openrc file
+#      template:
+#        src: openrc.sh.j2
+#        dest: /etc/slurm/openrc.sh
+#        owner: slurm
+#        group: slurm
+#        mode: 0600
+#
+#    - name: Install MariaDB
+#      dnf:
+#        name:
+#          - mariadb-server
+#        state: present
+#
+#    - name: Start MariaDB
+#      service:
+#        name: mariadb
+#        state: started
+#        enabled: true
+#
+#    - name: Install PyMySQL
+#      package:
+#        name: python3-PyMySQL
+#        state: present
+#
+#    - name: Create slurm_acct_db MySQL database
+#      community.mysql.mysql_db:
+#        name: slurm_acct_db
+#        state: present
+#
+#    - name: Create slurm user in MySQL database
+#      community.mysql.mysql_user:
+#        name: "{{ mysql_user }}"
+#        host: localhost
+#        password: "{{ mysql_password }}"
+#        priv:
+#          'slurm_acct_db.*': 'ALL,GRANT'
+#        state: present
+#
+#    - name: Configure slurmdbd
+#      template:
+#        src: slurmdbd.conf.j2
+#        dest: /etc/slurm/slurmdbd.conf
+#        owner: slurm
+#        group: slurm
+#        mode: 0600
+#      notify: restart slurmdbd
+#
+#    - name: Copy slurm.conf
+#      template:
+#        src: slurm.conf.j2
+#        dest: /etc/slurm/slurm.conf
+#        owner: root
+#        group: root
+#        mode: 0644
+#      notify: restart slurmctld
+#
+#    - name: Copy slurm_resume.sh
+#      template:
+#        src: slurm_resume.sh.j2
+#        dest: /usr/local/sbin/slurm_resume.sh
+#        owner: root
+#        group: root
+#        mode: 0755
+#
+#    - name: Copy slurm_suspend.sh
+#      template:
+#        src: slurm_suspend.sh.j2
+#        dest: /usr/local/sbin/slurm_suspend.sh
+#        owner: root
+#        group: root
+#        mode: 0755
+#
+#    - name: Increase the number of munge daemons to 10
+#      copy:
+#        dest: /etc/sysconfig/munge
+#        owner: root
+#        group: root
+#        mode: 0644
+#        content: |
+#          DAEMON_ARGS="--key-file /etc/munge/munge.key --num-threads 10"
+#
+#    - name: Start slurmctld, slurmdbd, and munge
+#      service:
+#        name: "{{ item }}"
+#        state: started
+#        enabled: true
+#      with_items:
+#        - slurmctld
+#        - slurmdbd
+#        - munge
+#
+#    - name: Gather munge.key
+#      fetch:
+#        src: /etc/munge/munge.key
+#        dest: ./files/munge.key
+#        flat: yes
+#
+#    - name: Configure rsyslog to accept syslog from compute nodes
+#      blockinfile:
+#        path: /etc/rsyslog.d/ohpc.conf
+#        insertbefore: EOF
+#        create: true
+#        state: present
+#        block: |
+#          module(load="imudp")
+#          input(type="imudp" port="514")
+#      notify: restart rsyslog
 
     - import_tasks: tasks/install_openvpn.yml
 
@@ -233,15 +233,15 @@
         src: clouds.yaml
         dest: /root/.config/openstack/clouds.yaml
 
-    - name: Get server facts
-      openstack.cloud.server_info:
-        cloud: "{{ cloud_name }}"
-        server: "{{ head_node_name }}"
-      register: server_info
-
-    - name: debug server_info
-      debug:
-          var: server_info
+#    - name: Get server facts
+#      openstack.cloud.server_info:
+#        cloud: "{{ cloud_name }}"
+#        server: "{{ head_node_name }}"
+#      register: server_info
+#
+#    - name: debug server_info
+#      debug:
+#          var: server_info
       
 #    - name: Detach floating IP from headnode
 #      openstack.cloud.floating_ip:

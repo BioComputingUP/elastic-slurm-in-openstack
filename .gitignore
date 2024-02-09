@@ -2,3 +2,5 @@ ansible/
 files/munge.key
 .cache
 .idea/
+*.qcow2
+
