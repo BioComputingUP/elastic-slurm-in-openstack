@@ -1,10 +1,15 @@
 ---
+- name: Update pip
+  pip:
+    name: pip
+    state: latest
+
 - name: Install Openstack client via pip
   pip:
     name: 
       - cryptography==3.3.2  # workaround: https://github.com/Azure/azure-cli/issues/16858
       - cmd2==1.4.0
       - PyYAML==3.12
-      - python-openstackclient
       - python-openstacksdk
+      - python-openstackclient
     state: present
