@@ -5,8 +5,8 @@
   register: headnode
 
 - name: Add head node to Ansible inventory
-  add_host: 
-    name: "{{ headnode.openstack_servers[0].accessIPv4 }}"
+  add_host:
+    name: "{{ headnode.openstack_servers[0].accessIPv4 | default(cluster_network_private_ip, true) }}"
     groups: headnode
     ansible_user: "{{ image_init_user }}"
     ansible_ssh_private_key_file: "{{ ssh_private_keyfile }}"
