@@ -67,6 +67,12 @@
         state: restarted
         enabled: true
 
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
+        enabled: true
+
   tasks:
     - import_tasks: tasks/install_openstack_client.yml
 
@@ -233,6 +239,14 @@
         src: clouds.yaml
         dest: /root/.config/openstack/clouds.yaml
 
+    - name: Setup CRYPTO_POLICY
+      lineinfile:
+        path: /etc/sysconfig/sshd
+        regexp: 'CRYPTO_POLICY='
+        line: "CRYPTO_POLICY='-oCiphers=aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr -oMACs=umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512 -oGSSAPIKeyExchange=no -oKexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512 -oHostKeyAlgorithms=rsa-sha2-256,rsa-sha2-256-cert-v01@openssh.com,ecdsa-sha2-nistp256,ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384,ecdsa-sha2-nistp384-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-512-cert-v01@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp521-cert-v01@openssh.com,ssh-ed25519,ssh-ed25519-cert-v01@openssh.com -oPubkeyAcceptedKeyTypes=rsa-sha2-256,rsa-sha2-256-cert-v01@openssh.com,ecdsa-sha2-nistp256,ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384,ecdsa-sha2-nistp384-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-512-cert-v01@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp521-cert-v01@openssh.com,ssh-ed25519,ssh-ed25519-cert-v01@openssh.com -oCASignatureAlgorithms=rsa-sha2-256,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,rsa-sha2-512,ecdsa-sha2-nistp521,ssh-ed25519'"
+        state: present
+      notify: restart sshd
+
 #    - name: Get server facts
 #      openstack.cloud.server_info:
 #        cloud: "{{ cloud_name }}"
@@ -243,11 +257,10 @@
 #      debug:
 #          var: server_info
       
-#    - name: Detach floating IP from headnode
-#      openstack.cloud.floating_ip:
-#        cloud: "{{ cloud_name }}"
-#        state: absent
-#        floating_ip_address: "{{ inventory_hostname }}"
-#        network: "{{ cluster_network_floating_ip_pool }}"
-#        server: "{{ head_node_name }}"
-
+    - name: Detach floating IP from headnode
+      openstack.cloud.floating_ip:
+        cloud: "{{ cloud_name }}"
+        state: absent
+        floating_ip_address: "{{ inventory_hostname }}"
+        network: "{{ cluster_network_floating_ip_pool }}"
+        server: "{{ head_node_name }}"
