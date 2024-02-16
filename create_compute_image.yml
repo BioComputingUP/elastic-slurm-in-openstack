@@ -92,27 +92,27 @@
 
   tasks:
     - import_tasks: tasks/install_compute_packages.yml
-
-    - name: Install firewalld
-      dnf:
-        name:
-          - python3-firewall
-          - firewalld
-        state: present
-
-    - name: Ensure firewalld is running
-      service:
-        name: firewalld
-        state: started
-
-    - name: Allow incoming traffic from cluster network
-      ansible.posix.firewalld:
-        source: "{{ cluster_network_cidr }}"
-        zone: trusted
-        state: enabled
-        permanent: true
-        immediate: true
-
+#
+#    - name: Install firewalld
+#      dnf:
+#        name:
+#          - python3-firewall
+#          - firewalld
+#        state: present
+#
+#    - name: Ensure firewalld is running
+#      service:
+#        name: firewalld
+#        state: started
+#
+#    - name: Allow incoming traffic from cluster network
+#      ansible.posix.firewalld:
+#        source: "{{ cluster_network_cidr }}"
+#        zone: trusted
+#        state: enabled
+#        permanent: true
+#        immediate: true
+#
     - name: Configure compute node to send syslog to head node
       blockinfile:
         path: "/etc/rsyslog.conf"
