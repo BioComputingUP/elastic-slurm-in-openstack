@@ -23,7 +23,8 @@
     os_volume:
       name: "{{ compute_node_image }}"
       image: "{{ image_name }}"
-      size: "{{ (image_info.openstack_images[0].size/1024/1024/1024) | int }}"
+#      size: "{{ (image_info.openstack_images[0].size/1024/1024/1024) | int }}"
+      size: "{{ compute_node_disk_size_gb }}"
       bootable: true
       state: present
 
@@ -35,7 +36,7 @@
       key_name: "{{ keypair_name }}"
       network: "{{ cluster_network_name }}"
       auto_ip: yes
-      security_groups: 
+      security_groups:
         - "{{ cluster_security_group }}"
       state: present
 
@@ -45,7 +46,7 @@
     register: compute_imaging
 
   - name: Add imaging instance to Ansible inventory
-    add_host: 
+    add_host:
       name: "{{ compute_imaging.openstack_servers[0].accessIPv4 }}"
       groups: compute_imaging
       ansible_user: "{{ image_init_user }}"
@@ -59,12 +60,12 @@
   gather_facts: false
   vars_files:
     - ./vars/main.yml
-  
+
   tasks:
     - name: Wait for compute imaging instance to boot and become reachable
       wait_for_connection:
 
-    - debug: 
+    - debug:
         msg: "{{ cluster_name }}_compute_imaging instance is running at {{ hostvars['localhost'].compute_imaging.openstack_servers[0].accessIPv4 }}."
 
 - hosts: compute_imaging
@@ -77,17 +78,32 @@
     - role: geerlingguy.ntp
       vars:
         ntp_daemon: chronyd
-        ntp_timezone: "America/New_York"
+        ntp_timezone: "Europe/Rome"
         ntp_enabled: true
         ntp_config_file: /etc/chrony.conf
         ntp_servers:
-          - "ntp0.cac.cornell.edu iburst"
-          - "ntp1.cac.cornell.edu iburst"
-          - "ntp2.cac.cornell.edu iburst"
-        ntp_cron_handler_enabled: true
+          - "it.pool.ntp.org iburst"
+          - "0.it.pool.ntp.org iburst"
+          - "1.it.pool.ntp.org iburst"
+          - "2.it.pool.ntp.org iburst"
+          - "3.it.pool.ntp.org iburst"
+#        ntp_cron_handler_enabled: true
+        ntp_cron_handler_enabled: false
 
   tasks:
     - import_tasks: tasks/install_compute_packages.yml
+
+    - name: Install firewalld
+      dnf:
+        name:
+          - python3-firewall
+          - firewalld
+        state: present
+
+    - name: Ensure firewalld is running
+      service:
+        name: firewalld
+        state: started
 
     - name: Allow incoming traffic from cluster network
       ansible.posix.firewalld:
@@ -160,7 +176,7 @@
         mode: 0644
 
     - name: Increase the number of munge daemons to 10
-      copy: 
+      copy:
         dest: /etc/sysconfig/munge
         owner: root
         group: root
@@ -169,7 +185,7 @@
           DAEMON_ARGS="--key-file /etc/munge/munge.key --num-threads 10"
 
     - name: Copy munge key
-      copy: 
+      copy:
         src: munge.key
         dest: /etc/munge/munge.key
         owner: munge
@@ -187,29 +203,29 @@
         enabled: true
 
     - name: Shut down compute imaging instance
-      community.general.shutdown: 
-        delay: 5
+      community.general.shutdown:
+        delay: 10
 
-    - name: Wait 10 seconds for instance shut down
-      pause: 
-        seconds: 10
+#    - name: Wait 20 seconds for instance shut down
+#      pause:
+#        echo: false
+#        seconds: 20
 
 
 - hosts: localhost
   gather_facts: false
   vars_files:
     - ./vars/main.yml
-
   tasks:
     - name: Delete compute imaging instance
       openstack.cloud.server:
-        delete_fip: true
+#        delete_fip: true
         name: "{{ cluster_name }}-compute-imaging"
         state: absent
 
     - name: Wait for the compute image volume is detached
       openstack.cloud.volume_info:
-        name: "{{ compute_node_image }} "
+        name: "{{ compute_node_image }}"
         details: true
       register: volumes_info
       until: volumes_info.volumes[0].status is match("available")
