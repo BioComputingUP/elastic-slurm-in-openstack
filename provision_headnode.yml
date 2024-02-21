@@ -15,6 +15,13 @@
     - role: geerlingguy.nfs
       vars:
         nfs_exports:
+          - "/local {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+          - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+          - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+
+    - role: geerlingguy.nfs
+      vars:
+        nfs_exports:
           - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
       when: not install_intel_oneapi
@@ -74,9 +81,115 @@
         enabled: true
 
   tasks:
+    - name: Update .inputrc (user)
+      lineinfile:
+        path: "/home/{{ image_init_user }}/.inputrc"
+        line: "{{ item }}"
+        owner: "{{ image_init_user }}"
+        group: "{{ image_init_user }}"
+        create: yes
+      loop:
+        - '"\e[A":history-search-backward'
+        - '"\e[B":history-search-forward'
+        - '"\e[1;5C": forward-word'
+        - '"\e[1;5D": backward-word'
+        - '"\e[5C": forward-word'
+        - '"\e[5D": backward-word'
+        - '"\e\e[C": forward-word'
+        - '"\e\e[D": backward-word'
+
+    - name: Update .inputrc (root)
+      lineinfile:
+        path: "/root/.inputrc"
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - '"\e[A":history-search-backward'
+        - '"\e[B":history-search-forward'
+        - '"\e[1;5C": forward-word'
+        - '"\e[1;5D": backward-word'
+        - '"\e[5C": forward-word'
+        - '"\e[5D": backward-word'
+        - '"\e\e[C": forward-word'
+        - '"\e\e[D": backward-word'
+
+    - name: Create /local directory
+      file:
+        path: /local
+        state: directory
+        owner: root
+        group: root
+        mode: 0777
+
+    - name: Ensures ~/.config/openstack dir exists
+      file:
+        path: /root/.config/openstack
+        mode: 0755
+        state: directory
+
+    - name: Copy clouds.yaml
+      ansible.builtin.copy:
+        src: clouds.yaml
+        dest: /root/.config/openstack/clouds.yaml
+
     - import_tasks: tasks/install_openstack_client.yml
 
+    - name: Attach biocomp2 volume to a head node
+      openstack.cloud.server_volume:
+        state: present
+        cloud: "{{ cloud_name }}"
+        server: "{{ head_node_name }}"
+        volume: biocomp2
+        device: /dev/vdb
+
+    - name: Attach biocomp2-lab volume to a head node
+      openstack.cloud.server_volume:
+        state: present
+        cloud: "{{ cloud_name }}"
+        server: "{{ head_node_name }}"
+        volume: biocomp-lab2
+        device: /dev/vdc
+
+    - name: Mount /mnt/biocomp
+      ansible.posix.mount:
+        path: /mnt/biocomp
+        src: /dev/vdb
+        fstype: ext4
+        opts: auto,defaults
+        state: mounted
+
+    - name: Mount /mnt/biocomp-lab
+      ansible.posix.mount:
+        path: /mnt/biocomp-lab
+        src: /dev/vdc
+        fstype: ext4
+        opts: auto,defaults
+        state: mounted
+
     - import_tasks: tasks/install_headnode_packages.yml
+
+    - import_tasks: tasks/install_openvpn.yml
+
+    - name: Mount /db
+      ansible.posix.mount:
+        path: /db
+        src: 172.21.2.101:/volume1/DB
+        fstype: nfs
+        state: mounted
+
+    - name: Mount /software
+      ansible.posix.mount:
+        path: /software
+        src: 172.21.2.101:/volume1/Software
+        fstype: nfs
+        state: mounted
+
+    - name: Mount /projects
+      ansible.posix.mount:
+        path: /projects
+        src: 172.21.2.103:/volume1/Pleiadi/projects
+        fstype: nfs
+        state: mounted
 
     - import_tasks: tasks/install_oneapi.yml
       when: install_intel_oneapi
@@ -226,19 +339,6 @@
           input(type="imudp" port="514")
       notify: restart rsyslog
 
-    - import_tasks: tasks/install_openvpn.yml
-
-    - name: Ensures ~/.config/openstack dir exists
-      file:
-        path: /root/.config/openstack
-        mode: 0755
-        state: directory
-
-    - name: Copy clouds.yaml
-      ansible.builtin.copy:
-        src: clouds.yaml
-        dest: /root/.config/openstack/clouds.yaml
-
     - name: Setup CRYPTO_POLICY
       lineinfile:
         path: /etc/sysconfig/sshd
@@ -247,16 +347,6 @@
         state: present
       notify: restart sshd
 
-#    - name: Get server facts
-#      openstack.cloud.server_info:
-#        cloud: "{{ cloud_name }}"
-#        server: "{{ head_node_name }}"
-#      register: server_info
-#
-#    - name: debug server_info
-#      debug:
-#          var: server_info
-      
     - name: Detach floating IP from headnode
       openstack.cloud.floating_ip:
         cloud: "{{ cloud_name }}"
