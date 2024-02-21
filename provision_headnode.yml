@@ -347,6 +347,9 @@
         state: present
       notify: restart sshd
 
+    - name: Flush handlers before detaching floating IP
+      meta: flush_handlers
+
     - name: Detach floating IP from headnode
       openstack.cloud.floating_ip:
         cloud: "{{ cloud_name }}"
