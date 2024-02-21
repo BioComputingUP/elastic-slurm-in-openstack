@@ -13,28 +13,7 @@
       openstack.cloud.server:
         name: "{{ item.name }}"
         state: absent
-        delete_fip: true
       loop: "{{ cluster_instances.openstack_servers }}"
-
-    - name: Delete cluster subnet router
-      openstack.cloud.router: 
-        name: "{{ cluster_network_router }}"
-        state: absent
-
-    - name: Delete cluster subnet
-      openstack.cloud.subnet:
-        name: "{{ cluster_network_name }}"
-        state: absent
-
-    - name: Delete cluster network
-      openstack.cloud.network:
-        name: "{{ cluster_network_name }}"
-        state: absent
-
-    - name: Delete cluster head node boot volume
-      openstack.cloud.volume:
-        name: "{{ head_node_volume }}"
-        state: absent
 
     - name: Delete all cluster volumes
       openstack.cloud.volume:
@@ -47,16 +26,6 @@
          name: "{{ compute_node_image }}"
          state: absent
 
-    - name: Delete cluster security group 
-      openstack.cloud.security_group:
-        name: "{{ cluster_security_group }}"
-        state: absent 
-
-    - name: Delete cluster ssh keypair
-      os_keypair:
-        name: "{{ keypair_name }}"
-        state: absent
-  
     - name: Delete compute node image
       openstack.cloud.image:
         name: "{{ compute_node_image}}"
