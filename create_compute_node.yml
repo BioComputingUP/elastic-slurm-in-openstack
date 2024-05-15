@@ -1,0 +1,210 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars_files:
+     - ./vars/main.yml
+
+  tasks:
+  # TODO: check if "{{ cluster_name }}-compute-image" (compute_node_image) VOLUME is really needed
+
+  - name: Delete compute imaging instance
+    openstack.cloud.server:
+      name: "{{ cluster_name }}-compute-imaging"
+      state: absent
+
+  - name: Delete volume for compute imaging instance
+    openstack.cloud.volume:
+      name: "{{ compute_node_image }}"
+      state: absent
+
+#  - name: Create boot volume for compute imaging instance
+#    os_volume:
+#      image: "{{ image_name }}"
+#      name: "{{ compute_node_image }}"
+#      size: "{{ compute_node_disk_size_gb }}"
+#      bootable: true
+#      state: present
+
+  - name: Launch compute imaging instance
+    os_server:
+      name: "{{ cluster_name }}-compute-imaging"
+      image: "{{ image_name }}"
+#      boot_volume: "{{ compute_node_image }}"
+      flavor: "{{ compute_imaging_instance_flavor }}"
+      key_name: "{{ keypair_name }}"
+      network: "{{ cluster_network_name }}"
+      auto_ip: yes
+      security_groups:
+        - "{{ cluster_security_group }}"
+      state: present
+
+  - name: Get imaging instance info
+    os_server_info:
+      server: "{{ cluster_name }}-compute-imaging"
+    register: compute_imaging
+
+  - name: Add imaging instance to Ansible inventory
+    add_host:
+      name: "{{ compute_imaging.openstack_servers[0].accessIPv4 }}"
+      groups: compute_imaging
+      ansible_user: "{{ image_init_user }}"
+      ansible_ssh_private_key_file: "{{ ssh_private_keyfile }}"
+      ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+    changed_when: false
+
+  - import_tasks: tasks/add_headnode_inventory.yml
+
+- hosts: compute_imaging
+  gather_facts: false
+  vars_files:
+    - ./vars/main.yml
+
+  tasks:
+    - name: Wait for compute imaging instance to boot and become reachable
+      wait_for_connection:
+
+    - debug:
+        msg: "{{ cluster_name }}_compute_imaging instance is running at {{ hostvars['localhost'].compute_imaging.openstack_servers[0].accessIPv4 }}."
+
+- hosts: compute_imaging
+  gather_facts: true
+  vars_files:
+    - ./vars/main.yml
+  become: true
+
+  roles:
+    - role: geerlingguy.ntp
+      vars:
+        ntp_daemon: chronyd
+        ntp_timezone: "Europe/Rome"
+        ntp_enabled: true
+        ntp_config_file: /etc/chrony.conf
+        ntp_servers:
+          - "it.pool.ntp.org iburst"
+          - "0.it.pool.ntp.org iburst"
+          - "1.it.pool.ntp.org iburst"
+          - "2.it.pool.ntp.org iburst"
+          - "3.it.pool.ntp.org iburst"
+        ntp_cron_handler_enabled: true
+#        ntp_cron_handler_enabled: false
+
+  handlers:
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
+        enabled: true
+
+  tasks:
+    - name: Setup CRYPTO_POLICY
+      lineinfile:
+        path: /etc/sysconfig/sshd
+        regexp: 'CRYPTO_POLICY='
+        line: "CRYPTO_POLICY='-oCiphers=aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr -oMACs=umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512 -oGSSAPIKeyExchange=no -oKexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512 -oHostKeyAlgorithms=rsa-sha2-256,rsa-sha2-256-cert-v01@openssh.com,ecdsa-sha2-nistp256,ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384,ecdsa-sha2-nistp384-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-512-cert-v01@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp521-cert-v01@openssh.com,ssh-ed25519,ssh-ed25519-cert-v01@openssh.com -oPubkeyAcceptedKeyTypes=rsa-sha2-256,rsa-sha2-256-cert-v01@openssh.com,ecdsa-sha2-nistp256,ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384,ecdsa-sha2-nistp384-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-512-cert-v01@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp521-cert-v01@openssh.com,ssh-ed25519,ssh-ed25519-cert-v01@openssh.com -oCASignatureAlgorithms=rsa-sha2-256,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,rsa-sha2-512,ecdsa-sha2-nistp521,ssh-ed25519'"
+        state: present
+      notify: restart sshd
+
+    - meta: flush_handlers
+
+    - import_tasks: tasks/install_compute_packages.yml
+
+    - name: Configure compute node to send syslog to head node
+      blockinfile:
+        path: "/etc/rsyslog.conf"
+        insertbefore: EOF
+        block: |
+          *.* @{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:514
+          action(type="omfwd" Target="{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}" Port="514" Protocol="udp")
+
+
+    - name: Add home directory mount to /etc/fstab
+      ansible.posix.mount:
+        path: /home
+        src: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/home"
+        fstype: nfs
+        state: present
+
+    - name: Create /opt/ohpc/pub
+      file:
+        path: /opt/ohpc/pub
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Add /opt/ohpc/pub to /etc/fstab
+      ansible.posix.mount:
+        path: /opt/ohpc/pub
+        src: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/opt/ohpc/pub"
+        fstype: nfs
+        state: present
+
+    - name: Create /opt/intel in chroot
+      file:
+        path: /opt/intel
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+      when: install_intel_oneapi
+
+    - name: Add NFS mount /opt/intel to chroot
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/opt/intel /opt/intel nfs nfsvers=3,nodev 0 0"
+        state: present
+      when: install_intel_oneapi
+
+    - name: Create /var/log/slurm
+      file:
+        path: /var/log/slurm
+        owner: slurm
+        group: slurm
+        mode: 0700
+        state: directory
+
+    - name: Copy slurm.conf
+      template:
+        src: slurm.conf.j2
+        dest: /etc/slurm/slurm.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Increase the number of munge daemons to 10
+      copy:
+        dest: /etc/sysconfig/munge
+        owner: root
+        group: root
+        mode: 0644
+        content: |
+          DAEMON_ARGS="--key-file /etc/munge/munge.key --num-threads 10"
+
+    - name: Copy munge key
+      copy:
+        src: munge.key
+        dest: /etc/munge/munge.key
+        owner: munge
+        group: munge
+        mode: 0600
+
+    - name: Set slurmd to auto-start at boot time
+      service:
+        name: slurmd
+        enabled: true
+
+    - name: Set munge to auto-start at boot time
+      service:
+        name: munge
+        enabled: true
+
+# TODO: move this to create_compute_image.yml (shutdown instance with openstack commands)
+#    - name: Flush handlers before shutdown
+#      meta: flush_handlers
+#
+#    - name: Shut down compute imaging instance
+#      community.general.shutdown:
+#        delay: 10
+
+    - debug:
+        msg: "Created {{ cluster_name }}-compute-imaging instance."
