@@ -198,13 +198,5 @@
         name: munge
         enabled: true
 
-# TODO: move this to create_compute_image.yml (shutdown instance with openstack commands)
-#    - name: Flush handlers before shutdown
-#      meta: flush_handlers
-#
-#    - name: Shut down compute imaging instance
-#      community.general.shutdown:
-#        delay: 10
-
     - debug:
         msg: "Created {{ cluster_name }}-compute-imaging instance."
