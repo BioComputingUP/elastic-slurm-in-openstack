@@ -318,9 +318,9 @@
         state: started
         enabled: true
       with_items:
+        - munge
         - slurmctld
         - slurmdbd
-        - munge
 
     - name: Gather munge.key
       fetch:
