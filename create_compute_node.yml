@@ -5,8 +5,6 @@
      - ./vars/main.yml
 
   tasks:
-  # TODO: check if "{{ cluster_name }}-compute-image" (compute_node_image) VOLUME is really needed
-
   - name: Delete compute imaging instance
     openstack.cloud.server:
       name: "{{ cluster_name }}-compute-imaging"
@@ -17,19 +15,18 @@
       name: "{{ compute_node_image }}"
       state: absent
 
-#  - name: Create boot volume for compute imaging instance
-#    os_volume:
-#      image: "{{ image_name }}"
-#      name: "{{ compute_node_image }}"
-#      size: "{{ compute_node_disk_size_gb }}"
-#      bootable: true
-#      state: present
+  - name: Create boot volume for compute imaging instance
+    os_volume:
+      image: "{{ image_name }}"
+      name: "{{ compute_node_image }}"
+      size: "{{ compute_node_disk_size_gb }}"
+      bootable: true
+      state: present
 
   - name: Launch compute imaging instance
     os_server:
       name: "{{ cluster_name }}-compute-imaging"
-      image: "{{ image_name }}"
-#      boot_volume: "{{ compute_node_image }}"
+      boot_volume: "{{ compute_node_image }}"
       flavor: "{{ compute_imaging_instance_flavor }}"
       key_name: "{{ keypair_name }}"
       network: "{{ cluster_network_name }}"
