@@ -5,44 +5,42 @@
     - vars/main.yml
 
   tasks:
-    - name: Get head node information
+    - name: Get compute imaging instance information
       os_server_info:
         server: "{{ cluster_name }}-compute-imaging"
       register: server_info
-#
-#    - name: Detach floating IP from headnode
-#      openstack.cloud.floating_ip:
-#        cloud: "{{ cloud_name }}"
-#        state: absent
-#        floating_ip_address: "{{ server_info.openstack_servers[0].public_v4 }}"
-#        network: "{{ cluster_network_floating_ip_pool }}"
-#        server: "{{ cluster_name }}-compute-imaging"
-#
-#    - name: Shut down compute imaging instance
-#      openstack.cloud.server_action:
-#        cloud: "{{ cloud_name }}"
-#        server: "{{ cluster_name }}-compute-imaging"
-#        action: stop
-#
 
-  # TODO: check if "{{ cluster_name }}-compute-image" (compute_node_image) is really needed
+    - name: Detach floating IP from compute imaging instance
+      openstack.cloud.floating_ip:
+        cloud: "{{ cloud_name }}"
+        state: absent
+        floating_ip_address: "{{ server_info.openstack_servers[0].public_v4 }}"
+        network: "{{ cluster_network_floating_ip_pool }}"
+        server: "{{ cluster_name }}-compute-imaging"
 
-    - name: Delete compute node image volume
-      openstack.cloud.volume:
-        name: "{{ compute_node_image }}"
+    - name: Shut down compute imaging instance
+      openstack.cloud.server_action:
+        cloud: "{{ cloud_name }}"
+        server: "{{ cluster_name }}-compute-imaging"
+        action: stop
+
+    - name: Delete compute imaging instance
+      openstack.cloud.server:
+        name: "{{ cluster_name }}-compute-imaging"
         state: absent
 
-    - debug:
-        var: server_info
-
-    - meta: end_play
-
-# TODO: check if this below is really openstack.cloud.image with original repo
+    - name: Wait for the compute image volume is detached
+      openstack.cloud.volume_info:
+        name: "{{ compute_node_image }}"
+        details: true
+      register: volumes_info
+      until: volumes_info.volumes[0].status is match("available")
 
     - name: Create compute image
       openstack.cloud.image:
         name: "{{ compute_node_image }}"
         volume: "{{ volumes_info.volumes[0].id }}"
+        visibility: private
         disk_format: raw
         timeout: 1200
         state: present
