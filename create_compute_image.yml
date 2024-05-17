@@ -40,7 +40,8 @@
       openstack.cloud.image:
         name: "{{ compute_node_image }}"
         volume: "{{ volumes_info.volumes[0].id }}"
-        visibility: private
+        #visibility: private
+        is_public: false
         disk_format: raw
         timeout: 1200
         state: present
