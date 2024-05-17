@@ -1,9 +1,9 @@
-# Slurm Cluster in Openstack Cloud
-These ansible playbooks create and manage a dynamically allocated slurm cluster in an Openstack cloud. The cluster is based on CentOS 8 and [OpenHPC 2.x](https://openhpc.community/downloads/). Slurm configurations are based on the work contained in (https://github.com/XSEDE/CRI_Jetstream_Cluster).
+# Slurm Cluster in OpenStack Cloud
+These ansible playbooks create and manage a dynamically allocated slurm cluster in an OpenStack cloud. The cluster is based on CentOS 8 and [OpenHPC 2.x](https://openhpc.community/downloads/). Slurm configurations are based on the work contained in (https://github.com/XSEDE/CRI_Jetstream_Cluster).
 
 # Systems Requirements
-1. Access to an Openstack cloud such as [Red Cloud](https://redcloud.cac.cornell.edu) at [Cornell University Center for Advanced Computing](https://www.cac.cornell.edu)
-1. [`openrc` file](https://www.cac.cornell.edu/wiki/index.php?title=OpenStack_CLI#Download_OpenStack_RC_File) containing credentials for accessing Openstack cloud.
+1. Access to an OpenStack cloud such as [Red Cloud](https://redcloud.cac.cornell.edu) at [Cornell University Center for Advanced Computing](https://www.cac.cornell.edu)
+1. [`openrc` file](https://www.cac.cornell.edu/wiki/index.php?title=OpenStack_CLI#Download_OpenStack_RC_File) containing credentials for accessing OpenStack cloud.
 1. A computer with python 3.6 or later installed.
 1. Clone this repo to your computer.
 
@@ -14,7 +14,7 @@ These ansible playbooks create and manage a dynamically allocated slurm cluster 
 
 To run the ansible playbooks described in the subsequent sections, you must first in the same terminal:
 1. Activate the ansible python virtual environment using the `source ansible/bin/activate` command. 
-2. Source in the Openstack cloud credentials in the `openrc` file. Confirm access by using the `openstack project list` command. The command should return a list of projects to which you have access in the Openstack cloud.
+2. Source in the OpenStack cloud credentials in the `openrc` file. Confirm access by using the `openstack project list` command. The command should return a list of projects to which you have access in the Openstack cloud.
 
 ## Configure Cluster
 
@@ -22,7 +22,7 @@ To run the ansible playbooks described in the subsequent sections, you must firs
 This yaml file defines variables that configure the cluster. The relevant ones are:
 
 * Cluster
-  * `cluster_name`: Use a name unique to your Openstack project. The playbooks identify cloud resources used by the cluster by this string in the resource names. After you set this variable initially, please do not change it. **Need to update the default values.**.
+  * `cluster_name`: Use a name unique to your OpenStack project. The playbooks identify cloud resources used by the cluster by this string in the resource names. After you set this variable initially, please do not change it. **Need to update the default values.**.
 
 * Head Node
   * `head_node_flavor`: instance flavor of the head node.
@@ -34,7 +34,7 @@ This yaml file defines variables that configure the cluster. The relevant ones a
   * `cluster_network_ssh_access`: Restrict ssh access to the cluster to this IP range, or enter `0.0.0.0/0` for no restrictions. Make sure this CIDR include the IP address of your computer so it can deploy the cluster!
 
 * Networking
-  * `cluster_network_dns_servers`: Enter the appropriate DNS server for your Openstack cloud. The default values are good for CAC Red Cloud.
+  * `cluster_network_dns_servers`: Enter the appropriate DNS server for your OpenStack cloud. The default values are good for CAC Red Cloud.
 
 * Compute Imaging Insance: create_compute_image.yml uses this instance and create the compute node image. The playbook will create and delete this instance as needed.
   * `compute_imaging_instance_flavor`: instance flavor of the compute imaging instance
