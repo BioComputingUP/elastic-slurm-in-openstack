@@ -18,19 +18,12 @@
           - "/local {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
           - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
           - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
+          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
 
     - role: geerlingguy.nfs
       vars:
         nfs_exports:
-          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-      when: not install_intel_oneapi
-
-    - role: geerlingguy.nfs
-      vars:
-        nfs_exports:
-          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/opt/intel {{ cluster_network_cidr }}(ro,no_root_squash)"
       when: install_intel_oneapi
 
@@ -200,6 +193,9 @@
         src: 172.21.2.103:/volume1/Pleiadi/projects
         fstype: nfs
         state: mounted
+
+    - name: Re-export the shares
+      command: exportfs -rav
 
     - import_tasks: tasks/install_oneapi.yml
       when: install_intel_oneapi
