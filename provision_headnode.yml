@@ -84,6 +84,9 @@
 
     - meta: flush_handlers
 
+    - name: Re-export the shares
+      command: exportfs -rav
+
     - name: Update .inputrc (user)
       lineinfile:
         path: "/home/{{ image_init_user }}/.inputrc"
@@ -137,68 +140,14 @@
 
     - import_tasks: tasks/install_openstack_client.yml
 
-    - name: Attach biocomp2 volume to a head node
-      openstack.cloud.server_volume:
-        state: present
-        cloud: "{{ cloud_name }}"
-        server: "{{ head_node_name }}"
-        volume: biocomp2
-        device: /dev/vdb
-
-    - name: Attach biocomp2-lab volume to a head node
-      openstack.cloud.server_volume:
-        state: present
-        cloud: "{{ cloud_name }}"
-        server: "{{ head_node_name }}"
-        volume: biocomp-lab2
-        device: /dev/vdc
-
-    - name: Mount /mnt/biocomp
-      ansible.posix.mount:
-        path: /mnt/biocomp
-        src: /dev/vdb
-        fstype: ext4
-        opts: auto,defaults
-        state: mounted
-
-    - name: Mount /mnt/biocomp-lab
-      ansible.posix.mount:
-        path: /mnt/biocomp-lab
-        src: /dev/vdc
-        fstype: ext4
-        opts: auto,defaults
-        state: mounted
-
     - import_tasks: tasks/install_headnode_packages.yml
-
-    - import_tasks: tasks/install_openvpn.yml
-
-    - name: Mount /db
-      ansible.posix.mount:
-        path: /db
-        src: 172.21.2.101:/volume1/DB
-        fstype: nfs
-        state: mounted
-
-    - name: Mount /software
-      ansible.posix.mount:
-        path: /software
-        src: 172.21.2.101:/volume1/Software
-        fstype: nfs
-        state: mounted
-
-    - name: Mount /projects
-      ansible.posix.mount:
-        path: /projects
-        src: 172.21.2.103:/volume1/Pleiadi/projects
-        fstype: nfs
-        state: mounted
-
-    - name: Re-export the shares
-      command: exportfs -rav
 
     - import_tasks: tasks/install_oneapi.yml
       when: install_intel_oneapi
+
+    - import_tasks: tasks/install_openvpn.yml
+
+    - import_tasks: tasks/mount_volumes.yml
 
     - name: Increase memlock
       blockinfile:
