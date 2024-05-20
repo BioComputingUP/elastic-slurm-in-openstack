@@ -16,8 +16,6 @@
       vars:
         nfs_exports:
           - "/local {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
           - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
 
@@ -83,6 +81,10 @@
       notify: restart sshd
 
     - meta: flush_handlers
+
+    - name: Export cloud volumes
+      include_role:
+        name: export_cloud_volumes
 
     - name: Re-export the shares
       command: exportfs -rav
