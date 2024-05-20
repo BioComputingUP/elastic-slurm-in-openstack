@@ -147,7 +147,9 @@
 
     - import_tasks: tasks/install_openvpn.yml
 
-    - import_tasks: tasks/mount_volumes.yml
+    - import_tasks: tasks/mount_cloud_volumes.yml
+
+    - import_tasks: tasks/mount_additional_volumes.yml
 
     - name: Increase memlock
       blockinfile:

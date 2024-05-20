@@ -152,6 +152,8 @@
         state: present
       when: install_intel_oneapi
 
+    - import_tasks: tasks/mount_additional_volumes.yml
+
     - name: Create /var/log/slurm
       file:
         path: /var/log/slurm
