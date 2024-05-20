@@ -151,6 +151,8 @@
 
     - import_tasks: tasks/mount_additional_volumes.yml
 
+    - import_tasks: tasks/restore_home.yml
+
     - name: Increase memlock
       blockinfile:
         path: /etc/security/limits.conf
