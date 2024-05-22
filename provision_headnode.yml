@@ -1,9 +1,9 @@
 ---
 - hosts: localhost
   gather_facts: false
-  vars_files: 
+  vars_files:
     - ./vars/main.yml
-  tasks: 
+  tasks:
     - import_tasks: tasks/add_headnode_inventory.yml
 
 - hosts: headnode
@@ -12,20 +12,6 @@
     - ./vars/main.yml
 
   roles:
-
-    # TODO: move user exports to external role
-    - role: geerlingguy.nfs
-      vars:
-        nfs_exports:
-          - "/local {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/db {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/software {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/projects {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-
     - role: geerlingguy.nfs
       vars:
         nfs_exports:
@@ -152,14 +138,6 @@
     - import_tasks: tasks/mount_cloud_volumes.yml
 
     - import_tasks: tasks/mount_additional_volumes.yml
-
-    # This does not work
-#    - name: Export cloud volumes
-#      include_role:
-#        name: export_cloud_volumes
-
-    - name: Re-export the shares
-      command: exportfs -rav
 
     - import_tasks: tasks/restore_home.yml
 
@@ -308,6 +286,26 @@
           input(type="imudp" port="514")
       notify: restart rsyslog
 
+
+- hosts: headnode
+  become: yes
+  vars_files:
+    - ./vars/main.yml
+
+  roles:
+    - role: geerlingguy.nfs
+      vars:
+        nfs_exports:
+          - "/local {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+          - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
+          - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
+          - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+          - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+          - "/db {{ cluster_network_cidr }}(fsid=10,rw,sync,no_root_squash,no_subtree_check)"
+          - "/software {{ cluster_network_cidr }}(fsid=11,rw,sync,no_root_squash,no_subtree_check)"
+          - "/projects {{ cluster_network_cidr }}(fsid=12,rw,sync,no_root_squash,no_subtree_check)"
+
+  tasks:
     - name: Flush handlers before detaching floating IP
       meta: flush_handlers
 
