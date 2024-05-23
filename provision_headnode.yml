@@ -64,6 +64,18 @@
         state: restarted
         enabled: true
 
+    - name: restart rpcbind
+      service:
+        name: rpcbind
+        state: restarted
+        enabled: true
+
+    - name: restart nfs-server
+      service:
+        name: nfs-server
+        state: restarted
+        enabled: true
+
   tasks:
     - name: Setup CRYPTO_POLICY
       lineinfile:
