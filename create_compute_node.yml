@@ -113,13 +113,23 @@
           *.* @{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:514
           action(type="omfwd" Target="{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}" Port="514" Protocol="udp")
 
+    - name: Create /local directory
+      file:
+        path: /local
+        state: directory
+        owner: root
+        group: root
+        mode: 0777
+
     - name: Add home directory mount to /etc/fstab
       ansible.posix.mount:
         path: /home
         src: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/home"
         fstype: nfs
-        state: present
+#        state: present
+        state: mounted
 
+    # maybe this is not needed with state: mounted
     - name: Create /opt/ohpc/pub
       file:
         path: /opt/ohpc/pub
@@ -133,9 +143,7 @@
         path: /opt/ohpc/pub
         src: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/opt/ohpc/pub"
         fstype: nfs
-        state: present
-
-    - import_tasks: tasks/mount_headnode_volumes.yml
+        state: mounted
 
     - name: Create /opt/intel in chroot
       file:
@@ -150,8 +158,10 @@
       lineinfile:
         path: /etc/fstab
         line: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/opt/intel /opt/intel nfs nfsvers=3,nodev 0 0"
-        state: present
+        state: mounted
       when: install_intel_oneapi
+
+    - import_tasks: tasks/mount_headnode_volumes.yml
 
     - name: Create /var/log/slurm
       file:

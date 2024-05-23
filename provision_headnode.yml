@@ -296,7 +296,6 @@
     - role: geerlingguy.nfs
       vars:
         nfs_exports:
-          - "/local {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
           - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
