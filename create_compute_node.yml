@@ -163,7 +163,7 @@
 
     - import_tasks: tasks/mount_headnode_volumes.yml
 
-    # disabling sincce if already mounted gives timeouts
+    # disabling since if already mounted gives timeouts
 #    - import_tasks: tasks/mount_additional_volumes.yml
 
     - name: Create /var/log/slurm
