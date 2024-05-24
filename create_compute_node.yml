@@ -180,8 +180,6 @@
 
     - import_tasks: tasks/mount_headnode_volumes.yml
 
-    - import_tasks: tasks/mount_additional_volumes.yml
-
     - name: Create /var/log/slurm
       file:
         path: /var/log/slurm
