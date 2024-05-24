@@ -64,6 +64,12 @@
         state: restarted
         enabled: true
 
+    - name: restart autofs
+      service:
+        name: autofs
+        state: restarted
+        enabled: true
+
     - name: restart rpcbind
       service:
         name: rpcbind

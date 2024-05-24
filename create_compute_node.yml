@@ -92,6 +92,24 @@
         state: restarted
         enabled: true
 
+    - name: restart autofs
+      service:
+        name: autofs
+        state: restarted
+        enabled: true
+
+    - name: restart rpcbind
+      service:
+        name: rpcbind
+        state: restarted
+        enabled: true
+
+    - name: restart nfs-server
+      service:
+        name: nfs-server
+        state: restarted
+        enabled: true
+
   tasks:
     - name: Setup CRYPTO_POLICY
       lineinfile:
@@ -126,7 +144,6 @@
         path: /home
         src: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/home"
         fstype: nfs
-#        state: present
         state: mounted
 
     # maybe this is not needed with state: mounted
@@ -163,8 +180,7 @@
 
     - import_tasks: tasks/mount_headnode_volumes.yml
 
-    # disabling since if already mounted gives timeouts
-#    - import_tasks: tasks/mount_additional_volumes.yml
+    - import_tasks: tasks/mount_additional_volumes.yml
 
     - name: Create /var/log/slurm
       file:
