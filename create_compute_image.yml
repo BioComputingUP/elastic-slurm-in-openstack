@@ -17,12 +17,14 @@
         floating_ip_address: "{{ server_info.openstack_servers[0].public_v4 }}"
         network: "{{ cluster_network_floating_ip_pool }}"
         server: "{{ cluster_name }}-compute-imaging"
+      when: server_info.openstack_servers[0] is defined
 
     - name: Shut down compute imaging instance
       openstack.cloud.server_action:
         cloud: "{{ cloud_name }}"
         server: "{{ cluster_name }}-compute-imaging"
         action: stop
+      when: server_info.openstack_servers[0] is defined
 
     - name: Delete compute imaging instance
       openstack.cloud.server:
@@ -35,6 +37,11 @@
         details: true
       register: volumes_info
       until: volumes_info.volumes[0].status is match("available")
+
+    - name: Delete compute image
+      openstack.cloud.image:
+        name: "{{ compute_node_image }}"
+        state: absent
 
     - name: Create compute image
       openstack.cloud.image:
