@@ -4,12 +4,6 @@ The cluster is based on CentOS 8 and [OpenHPC 2.x](https://openhpc.community/dow
 This repo is based on the project [slurm-cluster-in-openstack](https://github.com/CornellCAC/slurm-cluster-in-openstack)
 adapted for use with [CloudVeneto](https://cloudveneto.ict.unipd.it/) OpenStack cloud.
 
-## Systems Requirements
-1. Access to an OpenStack cloud such as [Red Cloud](https://redcloud.cac.cornell.edu) at [Cornell University Center for Advanced Computing](https://www.cac.cornell.edu)
-1. [`openrc` file](https://www.cac.cornell.edu/wiki/index.php?title=OpenStack_CLI#Download_OpenStack_RC_File) containing credentials for accessing OpenStack cloud.
-1. A computer with python 3.6 or later installed.
-1. Clone this repo to your computer.
-
 ## Prerequisites
 ### Install Ansible
 Run the `install_ansible.sh` command:
