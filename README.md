@@ -1,59 +1,101 @@
-# Slurm Cluster in OpenStack Cloud
-These ansible playbooks create and manage a dynamically allocated slurm cluster in an OpenStack cloud. The cluster is based on CentOS 8 and [OpenHPC 2.x](https://openhpc.community/downloads/). Slurm configurations are based on the work contained in (https://github.com/XSEDE/CRI_Jetstream_Cluster).
+# Slurm cluster in OpenStack cloud
+These Ansible playbooks create and manage a dynamically allocated (elastic) Slurm cluster in an OpenStack cloud.
+The cluster is based on CentOS 8 and [OpenHPC 2.x](https://openhpc.community/downloads/). Slurm configurations are based on the work contained in (https://github.com/XSEDE/CRI_Jetstream_Cluster).
+This repo is based on the project [slurm-cluster-in-openstack](https://github.com/CornellCAC/slurm-cluster-in-openstack)
+adapted for use with [CloudVeneto](https://cloudveneto.ict.unipd.it/) OpenStack cloud.
 
-# Systems Requirements
+## Systems Requirements
 1. Access to an OpenStack cloud such as [Red Cloud](https://redcloud.cac.cornell.edu) at [Cornell University Center for Advanced Computing](https://www.cac.cornell.edu)
 1. [`openrc` file](https://www.cac.cornell.edu/wiki/index.php?title=OpenStack_CLI#Download_OpenStack_RC_File) containing credentials for accessing OpenStack cloud.
 1. A computer with python 3.6 or later installed.
 1. Clone this repo to your computer.
 
-# Deploy Slurm Cluster
-## Install Ansible
-1. cd to the directory containing the repo. 
-1. Run the `install_ansible.sh` command. 
+## Prerequisites
+### Install Ansible
+Run the `install_ansible.sh` command:
+```bash
+./install_ansible.sh
+```
+## Deploy Slurm Cluster
+### Enable a floating IP for the headnode
+Create a floating IP and ask to open port 22 to it. Don't associate it to a VM.
 
-To run the ansible playbooks described in the subsequent sections, you must first in the same terminal:
-1. Activate the ansible python virtual environment using the `source ansible/bin/activate` command. 
-2. Source in the OpenStack cloud credentials in the `openrc` file. Confirm access by using the `openstack project list` command. The command should return a list of projects to which you have access in the Openstack cloud.
+### Download rocky-8.8 image
+```bash
+wget https://dl.rockylinux.org/vault/rocky/8.8/images/x86_64/Rocky-8-GenericCloud-Base.latest.x86_64.qcow2
+# no need to upload it to OpenStack, Ansible will do it
+# openstack image create --disk-format qcow2 --container-format bare --file Rocky-8-GenericCloud-Base.latest.x86_64.qcow2 rocky-8.8
+```
+### Configure cluster
+Adjust `vars/main.yml` and use `cloudveneto.medium` flavor for head node and compute
+imaging instance and `cloudveneto.xlarge` for compute node.
 
-## Configure Cluster
+Adjust `clouds.yaml` with OpenStack credentials.
 
-### vars/main.yml ###
-This yaml file defines variables that configure the cluster. The relevant ones are:
+### Deployment
+Deployment is done in four steps:
+1. Create the head node
+2. Provision the head node
+3. Create and provision the compute node
+4. Create the compute node image
 
-* Cluster
-  * `cluster_name`: Use a name unique to your OpenStack project. The playbooks identify cloud resources used by the cluster by this string in the resource names. After you set this variable initially, please do not change it. **Need to update the default values.**.
+#### Create the head node
+```bash
+source ansible/bin/activate
+source ELIXIRxNextGenIT-openrc.sh
+ansible-playbook create_headnode.yml
+```
 
-* Head Node
-  * `head_node_flavor`: instance flavor of the head node.
-  * `head_node_disk_size_gb`: disk size of the head node in GB.
-  * `install_intel_oneapi`: set to `true` to install Intel OneAPI compilers and MPI.
+#### Provision the head node
+```bash
+source ansible/bin/activate
+source ELIXIRxNextGenIT-openrc.sh
+ansible-playbook provision_headnode.yml
+```
 
-* Access
-  * `ssh_public_keyfile` and `ssh_private_keyfile`: Full paths (no tilde) to matching ssh public and private keys for initial access to the cluster. **Need to update the default values.**
-  * `cluster_network_ssh_access`: Restrict ssh access to the cluster to this IP range, or enter `0.0.0.0/0` for no restrictions. Make sure this CIDR include the IP address of your computer so it can deploy the cluster!
+#### Create and provision the compute node
+```bash
+source ansible/bin/activate
+source ELIXIRxNextGenIT-openrc.sh
+ansible-playbook create_compute_node.yml
+```
 
-* Networking
-  * `cluster_network_dns_servers`: Enter the appropriate DNS server for your OpenStack cloud. The default values are good for CAC Red Cloud.
+#### Create compute node image
+```bash
+source ansible/bin/activate
+source ELIXIRxNextGenIT-openrc.sh
+ansible-playbook create_compute_image.yml
+```
 
-* Compute Imaging Insance: create_compute_image.yml uses this instance and create the compute node image. The playbook will create and delete this instance as needed.
-  * `compute_imaging_instance_flavor`: instance flavor of the compute imaging instance
-  
-* Compute Node: If you change any of the parameters in this section after the cluster is deployed, re-run the `provision_head_node.yml` and `create_compute_image.yml` playbook for the changes to take effect.
-  * `compute_node_flavor` and `compute_node_cpus`: The flavor and CPU counts of a compute node. The CPU count must match the flavor or `slurmd` might fail to start on the compute node.
-  * `compute_node_disk_size_gb`: disk size of the compute node in GB.
-  * `max_compute_nodes`: maximum number of compute nodes the cluster can have. 
-  * `slurm_suspend_time`: Number of seconds slurm waits before deleting an idle compute node instance.
-  
-## Deploy Cluster
-Ansible playbooks are idempotent. After correcting an error or updating a variable, you should be able to run the playbooks as many times as needed.
+#### All-in-one deployment
+```bash
+source ansible/bin/activate
+source ELIXIRxNextGenIT-openrc.sh
+time ( \
+ansible-playbook create_headnode.yml && \
+ansible-playbook provision_headnode.yml && \
+ansible-playbook create_compute_node.yml && \
+ansible-playbook create_compute_image.yml && \
+echo "Deployment completed" || echo "Deployment failed" )
+```
+or fancy with notifications:
+```bash
+source ansible/bin/activate
+source ELIXIRxNextGenIT-openrc.sh
+/bin/time -f "\n### overall time: \n### wall clock: %E" /bin/bash -c '\
+/bin/time -f "\n### timing \"%C ...\"\n### wall clock: %E" ansible-playbook create_headnode.yml && \
+/bin/time -f "\n### timing \"%C ...\"\n### wall clock: %E" ansible-playbook provision_headnode.yml && \
+/bin/time -f "\n### timing \"%C ...\"\n### wall clock: %E" ansible-playbook create_compute_node.yml && \
+/bin/time -f "\n### timing \"%C ...\"\n### wall clock: %E" ansible-playbook create_compute_image.yml && \
+echo "Deployment completed" | tee /dev/tty | notify-send -t 0 "$(</dev/stdin)" || \
+echo "Deployment failed" | tee /dev/tty | notify-send -t 0 "$(</dev/stdin)"'
+```
 
-* Create the head node by running the `create_head_node.yml` playbook: `ansible-playbook create_head_node.yml`
-* Provision the head node by running the `provision_head_node.yml` playbook: `ansible-playbook provision_head_node.yml`. This playbook will take a while to run depending on your head node flavor as it installs user software packages (gcc 9, openmpi 4, etc.) that come with OpenHPC 2.x distribution.
-* Build compute node image by running the `create_compute_image.yml` playbook. This playbook makes sure `compute_node_image` image does not already exist in the cloud and will fail if it does. Delete the pre-existing `compute_node_image` using the `openstack image delete <compute_node_image>` command if needed: `ansible-playbook create_compute_image.yml`
+### Cleanup
+Delete all cloud resources with:
+```bash
+source ansible/bin/activate
+source ELIXIRxNextGenIT-openrc.sh
+ansible-playbook destroy_cluster.yml
+```
 
-# Access the Cluster
-You can gain initial access to the cluster by ssh to the head node's IP address as defined by the `image_init_user` variable in `vars/main.yml`. When you submit jobs to slurm using the `sbatch` or `srun` commands on the head node, slurm will create and delete compute node instances as defined by the `max_compute_nodes` and `slurm_suspend_time` variables.
-
-# Clean Up
-When you are done with the cluster, delete all cloud resources used by the cluster using the `destroy_cluster.yml` playbook: `ansible-playbook destroy_cluster.yml`. **Note: all data stored in the cluster will be lost, forever, and unrecoverable.**
