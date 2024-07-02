@@ -28,7 +28,7 @@
 
     - name: Delete compute node image
       openstack.cloud.image:
-        name: "{{ compute_node_image}}"
+        name: "{{ compute_node_image }}"
         state: absent
 
     - debug:
