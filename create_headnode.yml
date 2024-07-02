@@ -15,7 +15,8 @@
         state: present
 
     - name: Launch cluster head node instance
-      os_server:
+      openstack.cloud.server:
+        cloud: "{{ cloud_name }}"
         name: "{{ head_node_name }}"
         image: "{{ image_name }}"
         flavor: "{{ head_node_flavor }}"
