@@ -5,15 +5,13 @@
     - vars/main.yml
 
   tasks:
-    # TODO replace os_* module
     - name: Get compute imaging instance information
-      os_server_info:
+      openstack.cloud.server_info:
         server: "{{ cluster_name }}-compute-imaging"
       register: server_info
 
     - name: Detach floating IP from compute imaging instance
       openstack.cloud.floating_ip:
-        cloud: "{{ cloud_name }}"
         state: absent
         floating_ip_address: "{{ server_info.openstack_servers[0].public_v4 }}"
         network: "{{ cluster_network_floating_ip_pool }}"
@@ -22,7 +20,6 @@
 
     - name: Shut down compute imaging instance
       openstack.cloud.server_action:
-        cloud: "{{ cloud_name }}"
         server: "{{ cluster_name }}-compute-imaging"
         action: stop
       when: server_info.openstack_servers[0] is defined

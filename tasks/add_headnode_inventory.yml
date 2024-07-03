@@ -1,7 +1,6 @@
 ---
-# TODO replace os_* module
 - name: Get head node information
-  os_server_info:
+  openstack.cloud.server_info:
     server: "{{ head_node_name }}"
   register: headnode
 
