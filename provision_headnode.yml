@@ -82,6 +82,12 @@
         state: restarted
         enabled: true
 
+    - name: restart postfix
+      service:
+        name: postfix
+        state: restarted
+        enabled: true
+
   tasks:
     - name: Setup CRYPTO_POLICY
       lineinfile:
