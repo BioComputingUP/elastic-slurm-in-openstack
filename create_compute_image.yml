@@ -5,6 +5,7 @@
     - vars/main.yml
 
   tasks:
+    # TODO replace os_* module
     - name: Get compute imaging instance information
       os_server_info:
         server: "{{ cluster_name }}-compute-imaging"

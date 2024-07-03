@@ -15,6 +15,7 @@
       name: "{{ compute_node_image }}"
       state: absent
 
+    # TODO replace os_* module
   - name: Create boot volume for compute imaging instance
     os_volume:
       image: "{{ image_name }}"
@@ -23,6 +24,7 @@
       bootable: true
       state: present
 
+    # TODO replace os_* module
   - name: Launch compute imaging instance
     os_server:
       name: "{{ cluster_name }}-compute-imaging"
@@ -35,6 +37,7 @@
         - "{{ cluster_security_group }}"
       state: present
 
+    # TODO replace os_* module
   - name: Get imaging instance info
     os_server_info:
       server: "{{ cluster_name }}-compute-imaging"
