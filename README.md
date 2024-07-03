@@ -35,31 +35,26 @@ Deployment is done in four steps:
 
 #### Create the head node
 ```bash
-source ansible/bin/activate
 ansible-playbook create_headnode.yml
 ```
 
 #### Provision the head node
 ```bash
-source ansible/bin/activate
 ansible-playbook provision_headnode.yml
 ```
 
 #### Create and provision the compute node
 ```bash
-source ansible/bin/activate
 ansible-playbook create_compute_node.yml
 ```
 
 #### Create compute node image
 ```bash
-source ansible/bin/activate
 ansible-playbook create_compute_image.yml
 ```
 
 #### All-in-one deployment
 ```bash
-source ansible/bin/activate
 time ( \
 ansible-playbook create_headnode.yml && \
 ansible-playbook provision_headnode.yml && \
@@ -69,7 +64,6 @@ echo "Deployment completed" || echo "Deployment failed" )
 ```
 or fancy with notifications:
 ```bash
-source ansible/bin/activate
 /bin/time -f "\n### overall time: \n### wall clock: %E" /bin/bash -c '\
 /bin/time -f "\n### timing \"%C ...\"\n### wall clock: %E" ansible-playbook create_headnode.yml && \
 /bin/time -f "\n### timing \"%C ...\"\n### wall clock: %E" ansible-playbook provision_headnode.yml && \
@@ -82,7 +76,6 @@ echo "Deployment failed" | tee /dev/tty | notify-send -t 0 "$(</dev/stdin)"'
 ### Cleanup
 Delete all cloud resources with:
 ```bash
-source ansible/bin/activate
 ansible-playbook destroy_cluster.yml
 ```
 
