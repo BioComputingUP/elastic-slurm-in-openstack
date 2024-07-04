@@ -201,6 +201,10 @@
         mode: 0700
         state: directory
 
+    - name: Read clouds.yaml configuration
+      openstack.cloud.config:
+      register: openstack_config
+
     - name: Copy openrc file
       template:
         src: openrc.sh.j2

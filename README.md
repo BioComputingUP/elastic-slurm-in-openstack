@@ -22,6 +22,7 @@ wget https://dl.rockylinux.org/vault/rocky/8.8/images/x86_64/Rocky-8-GenericClou
 ```
 ### Configure cluster
 Copy `vars/main.yml.example` to `vars/main.yml` and adjust to your needs.
+
 Copy `clouds.yaml.example` to `clouds.yaml` and adjust with OpenStack credentials.
 
 ### Deployment

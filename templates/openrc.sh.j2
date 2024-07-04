@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-export OS_AUTH_URL={{ lookup('env','OS_AUTH_URL') }}
-export OS_PROJECT_ID={{ lookup('env','OS_PROJECT_ID') }}
-export OS_PROJECT_NAME={{ lookup('env','OS_PROJECT_NAME') }}
-export OS_PROJECT_DOMAIN_NAME={{ lookup('env','OS_PROJECT_DOMAIN_NAME') }}
-export OS_USER_DOMAIN_NAME={{ lookup('env','OS_USER_DOMAIN_NAME') }}
-export OS_USERNAME={{ lookup('env','OS_USERNAME') }}
-export OS_PASSWORD='{{ lookup('env','OS_PASSWORD') }}'
-export OS_REGION_NAME={{ lookup('env','OS_REGION_NAME') }}
-export OS_INTERFACE={{ lookup('env','OS_INTERFACE') }}
-export OS_IDENTITY_API_VERSION={{ lookup('env','OS_IDENTITY_API_VERSION') }}
-export OS_COMPUTE_API_VERSION={{ lookup('env','OS_COMPUTE_API_VERSION') }}
+export OS_AUTH_URL={{ openstack_config.ansible_facts.openstack.clouds[0].auth.auth_url }}
+export OS_PROJECT_ID={{ openstack_config.ansible_facts.openstack.clouds[0].auth.project_id }}
+export OS_PROJECT_NAME={{ openstack_config.ansible_facts.openstack.clouds[0].auth.project_name }}
+export OS_PROJECT_DOMAIN_NAME={{ openstack_config.ansible_facts.openstack.clouds[0].auth.project_domain_name }}
+export OS_USER_DOMAIN_NAME={{ openstack_config.ansible_facts.openstack.clouds[0].auth.user_domain_name }}
+export OS_USERNAME={{ openstack_config.ansible_facts.openstack.clouds[0].auth.username }}
+export OS_PASSWORD='{{ openstack_config.ansible_facts.openstack.clouds[0].auth.password }}'
+export OS_REGION_NAME=regionOne
+export OS_INTERFACE=public
+export OS_IDENTITY_API_VERSION=3
+export OS_COMPUTE_API_VERSION=
