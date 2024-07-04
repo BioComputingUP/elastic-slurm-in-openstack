@@ -14,7 +14,7 @@ Run the `install_ansible.sh` command:
 ### Enable a floating IP for the headnode
 Create a floating IP and ask to open port 22 to it. Don't associate it to a VM.
 
-### Download rocky-8.8 image
+### Download Rocky Linux 8.8 image
 ```bash
 wget https://dl.rockylinux.org/vault/rocky/8.8/images/x86_64/Rocky-8-GenericCloud-Base.latest.x86_64.qcow2
 # no need to upload it to OpenStack, Ansible will do it
