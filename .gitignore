@@ -3,4 +3,5 @@ files/munge.key
 .cache
 .idea/
 *.qcow2
-
+main.yml
+clouds.yaml
