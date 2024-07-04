@@ -21,10 +21,8 @@ wget https://dl.rockylinux.org/vault/rocky/8.8/images/x86_64/Rocky-8-GenericClou
 # openstack image create --disk-format qcow2 --container-format bare --file Rocky-8-GenericCloud-Base.latest.x86_64.qcow2 rocky-8.8
 ```
 ### Configure cluster
-Adjust `vars/main.yml` and use `cloudveneto.medium` flavor for head node and compute
-imaging instance and `cloudveneto.xlarge` for compute node.
-
-Adjust `clouds.yaml` with OpenStack credentials.
+Copy `vars/main.yml.example` to `vars/main.yml` and adjust to your needs.
+Copy `clouds.yaml.example` to `clouds.yaml` and adjust with OpenStack credentials.
 
 ### Deployment
 Deployment is done in four steps:

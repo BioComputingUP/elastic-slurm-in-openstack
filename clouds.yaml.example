@@ -1,0 +1,13 @@
+clouds:
+  cloudveneto:
+    auth:
+      auth_url: "https://keystone-cv.pd.infn.it/v3"
+      project_name: "ProjectName"
+      project_id: 1234567890abcdef
+      username: "user@unipd.it"
+      password: "password"
+      user_domain_name: "Default"
+      project_domain_name: "default"
+#    region_name: "RegionOne"
+#    interface: "public"
+#    identity_api_version: 3
