@@ -342,7 +342,6 @@
 
     - name: Detach floating IP from headnode
       openstack.cloud.floating_ip:
-#        cloud: "{{ cloud_name }}"
         state: absent
         floating_ip_address: "{{ inventory_hostname }}"
         network: "{{ cluster_network_floating_ip_pool }}"

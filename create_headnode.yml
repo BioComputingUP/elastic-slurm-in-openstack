@@ -7,7 +7,6 @@
   tasks:
     - name: Upload image to OpenStack
       openstack.cloud.image:
-#        cloud: "{{ cloud_name }}"
         name: "{{ image_name }}"
         filename: "{{ image_file }}"
         disk_format: qcow2
@@ -16,7 +15,6 @@
 
     - name: Launch cluster head node instance
       openstack.cloud.server:
-#        cloud: "{{ cloud_name }}"
         name: "{{ head_node_name }}"
         image: "{{ image_name }}"
         flavor: "{{ head_node_flavor }}"
