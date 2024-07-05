@@ -163,6 +163,10 @@
 
     - import_tasks: tasks/mount_additional_volumes.yml
 
+    - import_tasks: tasks/install_conda.yml
+
+    - import_tasks: tasks/configure_lmod.yml
+
     - import_tasks: tasks/restore_home.yml
 
     - name: Increase memlock
