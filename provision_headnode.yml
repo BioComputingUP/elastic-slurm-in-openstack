@@ -159,15 +159,15 @@
 
     - import_tasks: tasks/install_openvpn.yml
 
-    - import_tasks: tasks/mount_cloud_volumes.yml
+#    - import_tasks: tasks/mount_cloud_volumes.yml
 
-    - import_tasks: tasks/mount_additional_volumes.yml
+#    - import_tasks: tasks/mount_additional_volumes.yml
 
     - import_tasks: tasks/install_conda.yml
 
     - import_tasks: tasks/configure_lmod.yml
 
-    - import_tasks: tasks/restore_home.yml
+#    - import_tasks: tasks/restore_home.yml
 
     - name: Increase memlock
       blockinfile:
@@ -330,11 +330,11 @@
         nfs_exports:
           - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-          - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-          - "/db {{ cluster_network_cidr }}(fsid=10,rw,sync,no_root_squash,no_subtree_check)"
-          - "/software {{ cluster_network_cidr }}(fsid=11,rw,sync,no_root_squash,no_subtree_check)"
-          - "/projects {{ cluster_network_cidr }}(fsid=12,rw,sync,no_root_squash,no_subtree_check)"
+#          - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+#          - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
+#          - "/db {{ cluster_network_cidr }}(fsid=10,rw,sync,no_root_squash,no_subtree_check)"
+#          - "/software {{ cluster_network_cidr }}(fsid=11,rw,sync,no_root_squash,no_subtree_check)"
+#          - "/projects {{ cluster_network_cidr }}(fsid=12,rw,sync,no_root_squash,no_subtree_check)"
 
   tasks:
     - name: Flush handlers before detaching floating IP
