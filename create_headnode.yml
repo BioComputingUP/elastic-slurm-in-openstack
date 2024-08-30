@@ -5,24 +5,24 @@
     - vars/main.yml
 
   tasks:
-#    - name: Upload image to OpenStack
-#      openstack.cloud.image:
-#        name: "{{ image_name }}"
-#        filename: "{{ image_file }}"
-#        disk_format: qcow2
-#        container_format: bare
-#        state: present
-#
-#    - name: Launch cluster head node instance
-#      openstack.cloud.server:
-#        name: "{{ head_node_name }}"
-#        image: "{{ image_name }}"
-#        flavor: "{{ head_node_flavor }}"
-#        key_name: "{{ keypair_name }}"
-#        network: "{{ cluster_network_name }}"
-#        auto_ip: true
-#        security_groups: "{{ cluster_security_group }}"
-#        state: present
+    - name: Upload image to OpenStack
+      openstack.cloud.image:
+        name: "{{ image_name }}"
+        filename: "{{ image_file }}"
+        disk_format: qcow2
+        container_format: bare
+        state: present
+
+    - name: Launch cluster head node instance
+      openstack.cloud.server:
+        name: "{{ head_node_name }}"
+        image: "{{ image_name }}"
+        flavor: "{{ head_node_flavor }}"
+        key_name: "{{ keypair_name }}"
+        network: "{{ cluster_network_name }}"
+        auto_ip: true
+        security_groups: "{{ cluster_security_group }}"
+        state: present
 
     - name: Add head node to inventory
       import_tasks: tasks/add_headnode_inventory.yml
