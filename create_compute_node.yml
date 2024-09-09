@@ -184,21 +184,13 @@
 
     - import_tasks: tasks/mount_headnode_volumes.yml
 
-    - name: Create /var/log/slurm
-      file:
-        path: /var/log/slurm
-        owner: slurm
-        group: slurm
-        mode: 0700
-        state: directory
-
-    - name: Copy slurm.conf
-      template:
-        src: slurm.conf.j2
-        dest: /etc/slurm/slurm.conf
-        owner: root
-        group: root
-        mode: 0644
+    - name: Setup configless slurmd
+      lineinfile:
+        path: /etc/default/slurmd
+        regexp: '^SLURM_CONF_SERVER='
+        line: "SLURM_CONF_SERVER={{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}"
+        create: true
+        state: present
 
     - name: Increase the number of munge daemons to 10
       copy:

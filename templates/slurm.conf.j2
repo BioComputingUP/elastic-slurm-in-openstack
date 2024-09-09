@@ -11,6 +11,7 @@
 ClusterName={{ cluster_name }}
 ControlMachine={{ cluster_name }}-headnode
 ControlAddr={{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}
+SlurmctldParameters=enable_configless
 #BackupController=
 #BackupAddr=
 
