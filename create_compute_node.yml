@@ -30,10 +30,14 @@
       flavor: "{{ compute_imaging_instance_flavor }}"
       key_name: "{{ keypair_name }}"
       network: "{{ cluster_network_name }}"
-      auto_ip: yes
-      security_groups:
-        - "{{ cluster_security_group }}"
+      auto_ip: true
+      security_groups: "{{ cluster_security_group }}"
       state: present
+      userdata: |
+        #cloud-config
+        packages:
+          - python3
+      #          package_upgrade: true
 
   - name: Get imaging instance info
     openstack.cloud.server_info:
