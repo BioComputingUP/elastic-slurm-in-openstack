@@ -167,6 +167,8 @@
 
     - import_tasks: tasks/configure_lmod.yml
 
+    - import_tasks: tasks/configure_ldap_client.yml
+
 #    - import_tasks: tasks/restore_home.yml
 
     - name: Increase memlock

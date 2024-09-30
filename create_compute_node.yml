@@ -127,6 +127,8 @@
 
     - import_tasks: tasks/install_compute_packages.yml
 
+    - import_tasks: tasks/configure_ldap_client.yml
+
     - name: Configure compute node to send syslog to head node
       blockinfile:
         path: "/etc/rsyslog.conf"
