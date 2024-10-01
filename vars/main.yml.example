@@ -5,7 +5,7 @@
 #
 cloud_name: "cloudveneto"
 cluster_name: "cluster1"
-image_name: "rocky-8.8"
+image_name: "rocky-8"
 image_file: "Rocky-8-GenericCloud-Base.latest.x86_64.qcow2"
 image_init_user: "rocky"
 yum_repo_prefix:
@@ -51,8 +51,8 @@ install_intel_oneapi: false
 # Access
 #
 keypair_name: "{{ cluster_name }}-key"
-ssh_public_keyfile: /home/user/.ssh/id_rsa.pub
-ssh_private_keyfile: /home/user/.ssh/id_rsa
+ssh_public_keyfile: cloudveneto.pub
+ssh_private_keyfile: cloudveneto.pem
 cluster_security_group: default
 
 #
@@ -77,13 +77,21 @@ compute_node_flavor: cloudveneto.xlarge
 # compute image after changing this value
 compute_node_cpus: 8
 compute_node_disk_size_gb: 25
+compute_node_tmpdisk_size_mb: 20480
+compute_node_realmemory_size_mb: 14336
 # Max number of compute nodes. Need to rebuild compute image after
 # changing this value
 max_compute_nodes: 10
 # Number of seconds slurm waits before deleting an idle compute node
 # instance
-slurm_suspend_time: 600
+slurm_suspend_time: 1800
+#
+# Partitions
+job_max_time: 86400
 #
 # slurmctld log debug levels: quiet, fatal, error, info, verbose, debug,
 # debug2, debug3, debug4, debug5
-slurmctld_log_debug: debug3
+slurmctld_log_debug: debug
+# slurmd log debug levels: quiet, fatal, error, info, verbose, debug,
+# debug2, debug3, debug4, debug5
+slurmd_log_debug: debug3
