@@ -11,6 +11,7 @@
 ClusterName={{ cluster_name }}
 ControlMachine={{ cluster_name }}-headnode
 ControlAddr={{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}
+SlurmctldParameters=enable_configless
 #BackupController=
 #BackupAddr=
 
@@ -24,10 +25,12 @@ AuthType=auth/munge
 StateSaveLocation=/var/spool/slurmctld/
 SlurmdSpoolDir=/tmp/slurmd
 SwitchType=switch/none
+TaskPlugin=task/cgroup
+PropagateResourceLimitsExcept=MEMLOCK
 MpiDefault=pmi2
 SlurmctldPidFile=/var/run/slurmctld.pid
 SlurmdPidFile=/var/run/slurmd.pid
-ProctrackType=proctrack/pgid
+ProctrackType=proctrack/cgroup
 #PluginDir=
 #FirstJobId=
 ReturnToService=1
@@ -68,7 +71,10 @@ SchedulerType=sched/backfill
 #SchedulerRootFilter=
 #SelectType=select/linear
 SelectType=select/cons_tres
-SelectTypeParameters=CR_CPU
+SelectTypeParameters=CR_CPU_Memory
+DefMemPerCPU=1536
+DependencyParameters=kill_invalid_depend
+
 #PriorityType=priority/multifactor
 #PriorityDecayHalfLife=14-0
 #PriorityUsageResetPeriod=14-0
@@ -81,13 +87,13 @@ SelectTypeParameters=CR_CPU
 # LOGGING
 SlurmctldDebug={{ slurmctld_log_debug }}
 SlurmctldLogFile=/var/log/slurm/slurmctld.log
-SlurmdDebug=3
+SlurmdDebug={{ slurmd_log_debug }}
 SlurmdLogFile=/var/log/slurmd.log
 JobCompType=jobcomp/none
 #JobCompLoc=
 
 # ACCOUNTING
-JobAcctGatherType=jobacct_gather/linux
+JobAcctGatherType=jobacct_gather/cgroup
 JobAcctGatherFrequency=30
 AccountingStorageType=accounting_storage/slurmdbd
 #AccountingStorageEnforce=associations,limits
@@ -101,6 +107,7 @@ GresTypes=""
 MaxJobCount=500000
 MaxArraySize=100000
 LaunchParameters=use_interactive_step
+JobSubmitPlugins=require_timelimit
 
 # CLOUD CONFIGURATION
 PrivateData=cloud
@@ -113,7 +120,7 @@ SuspendTime={{ slurm_suspend_time }} #time in seconds before an idle node is sus
 SuspendTimeout=30 #time between running SuspendProgram and the node being completely down
 
 # COMPUTE NODES
-NodeName={{cluster_name}}-c-[0-{{ max_compute_nodes - 1 }}] State=CLOUD CPUs={{ compute_node_cpus }}
+NodeName={{cluster_name}}-c-[0-{{ max_compute_nodes - 1 }}] State=CLOUD CPUs={{ compute_node_cpus }} TmpDisk={{ compute_node_tmpdisk_size_mb }} RealMemory={{ compute_node_realmemory_size_mb }}
 
 # PARTITIONS
-PartitionName=cloud Nodes={{cluster_name}}-c-[0-{{ max_compute_nodes - 1 }}] Default=YES MaxTime=INFINITE State=UP 
+PartitionName=cloud Nodes={{cluster_name}}-c-[0-{{ max_compute_nodes - 1 }}] Default=YES MaxTime={{ job_max_time }} State=UP

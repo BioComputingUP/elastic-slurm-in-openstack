@@ -23,13 +23,17 @@
         auto_ip: true
         security_groups: "{{ cluster_security_group }}"
         state: present
+        userdata: |
+          #cloud-config
+          packages:
+            - python3
+#          package_upgrade: true
 
     - name: Add head node to inventory
       import_tasks: tasks/add_headnode_inventory.yml
 
     - debug:
         msg: "{{ cluster_name }} head node is launched at {{ hostvars['localhost'].headnode.openstack_servers[0].accessIPv4 }}"
-
 
 - hosts: headnode
   gather_facts: false
@@ -39,6 +43,7 @@
   tasks:
     - name: wait for head node to boot and become reachable
       wait_for_connection:
+#        timeout: 10
 
     - debug:
         msg: "{{ cluster_name }} head node is up at {{ hostvars['localhost'].headnode.openstack_servers[0].accessIPv4 }}."
