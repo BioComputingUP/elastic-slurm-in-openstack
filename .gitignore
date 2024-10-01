@@ -5,3 +5,5 @@ files/munge.key
 *.qcow2
 main.yml
 clouds.yaml
+*.pem
+*.pub
