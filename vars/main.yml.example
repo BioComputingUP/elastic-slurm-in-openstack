@@ -1,0 +1,89 @@
+---
+# vars file for openstack-virtual-cluster
+#
+# Cluster general info
+#
+cloud_name: "cloudveneto"
+cluster_name: "cluster1"
+image_name: "rocky-8.8"
+image_file: "Rocky-8-GenericCloud-Base.latest.x86_64.qcow2"
+image_init_user: "rocky"
+yum_repo_prefix:
+  Rocky: "Rocky"
+  CentOS: "CentOS-Linux"
+
+#
+# Head node
+#
+head_node_name: "{{ cluster_name }}-headnode"
+head_node_flavor: cloudveneto.medium
+head_node_user_packages:
+  - ohpc-autotools
+  - ohpc-gnu12-io-libs
+  - ohpc-gnu12-openmpi4-io-libs
+  - ohpc-gnu12-openmpi4-parallel-libs
+  - ohpc-gnu12-parallel-libs
+  - ohpc-gnu12-python3-libs
+  - gnu12-compilers-ohpc
+  - openmpi4-gnu12-ohpc
+  - lmod-defaults-gnu12-openmpi4-ohpc
+  - automake-ohpc
+  - autoconf-ohpc
+  - cmake-ohpc
+  - libtool-ohpc
+  - python3-scipy-gnu12-openmpi4-ohpc
+  - python3-numpy-gnu12-ohpc
+  - python3-mpi4py-gnu12-openmpi4-ohpc
+  - pnetcdf-gnu12-openmpi4-ohpc
+  - gsl-gnu12-ohpc
+  - openblas-gnu12-ohpc
+  - boost-gnu12-openmpi4-ohpc
+  - fftw-gnu12-openmpi4-ohpc
+  - hypre-gnu12-openmpi4-ohpc
+  - scalapack-gnu12-openmpi4-ohpc
+
+mysql_user: slurm
+mysql_password: slurmdb
+# Set install_intel_oneapi to true to install Intel OneAPI (minimum head_node_disk_size_gb 60 )
+install_intel_oneapi: false
+
+#
+# Access
+#
+keypair_name: "{{ cluster_name }}-key"
+ssh_public_keyfile: /home/user/.ssh/id_rsa.pub
+ssh_private_keyfile: /home/user/.ssh/id_rsa
+cluster_security_group: default
+
+#
+# Networking
+#
+cluster_network_name: "{{ cluster_name }}-net"
+cluster_network_cidr: 10.x.x.0/24
+cluster_network_floating_ip_pool: Unipd-WAN
+cluster_network_private_ip: x.x.x.x
+#
+# Compute imaging instance: the instance create_compute_image.yml playbook
+# uses to create compute node image.
+#
+compute_imaging_instance_flavor: cloudveneto.medium
+
+#
+# Compute Node
+#
+compute_node_image: "{{ cluster_name }}-compute-image"
+compute_node_flavor: cloudveneto.xlarge
+# Need to match the core count of compute_node_flavor. Need to rebuild
+# compute image after changing this value
+compute_node_cpus: 8
+compute_node_disk_size_gb: 25
+# Max number of compute nodes. Need to rebuild compute image after
+# changing this value
+max_compute_nodes: 10
+# Number of seconds slurm waits before deleting an idle compute node
+# instance
+slurm_suspend_time: 600
+#
+# slurmctld log debug levels: quiet, fatal, error, info, verbose, debug,
+# debug2, debug3, debug4, debug5
+slurmctld_log_debug: debug3

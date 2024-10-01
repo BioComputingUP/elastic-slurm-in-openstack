@@ -16,7 +16,7 @@
       state: absent
 
   - name: Create boot volume for compute imaging instance
-    os_volume:
+    openstack.cloud.volume:
       image: "{{ image_name }}"
       name: "{{ compute_node_image }}"
       size: "{{ compute_node_disk_size_gb }}"
@@ -24,7 +24,7 @@
       state: present
 
   - name: Launch compute imaging instance
-    os_server:
+    openstack.cloud.server:
       name: "{{ cluster_name }}-compute-imaging"
       boot_volume: "{{ compute_node_image }}"
       flavor: "{{ compute_imaging_instance_flavor }}"
@@ -36,7 +36,7 @@
       state: present
 
   - name: Get imaging instance info
-    os_server_info:
+    openstack.cloud.server_info:
       server: "{{ cluster_name }}-compute-imaging"
     register: compute_imaging
 

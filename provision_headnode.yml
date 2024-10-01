@@ -82,6 +82,12 @@
         state: restarted
         enabled: true
 
+    - name: restart postfix
+      service:
+        name: postfix
+        state: restarted
+        enabled: true
+
   tasks:
     - name: Setup CRYPTO_POLICY
       lineinfile:
@@ -157,6 +163,10 @@
 
     - import_tasks: tasks/mount_additional_volumes.yml
 
+    - import_tasks: tasks/install_conda.yml
+
+    - import_tasks: tasks/configure_lmod.yml
+
     - import_tasks: tasks/restore_home.yml
 
     - name: Increase memlock
@@ -194,6 +204,10 @@
         group: slurm
         mode: 0700
         state: directory
+
+    - name: Read clouds.yaml configuration
+      openstack.cloud.config:
+      register: openstack_config
 
     - name: Copy openrc file
       template:
@@ -328,7 +342,6 @@
 
     - name: Detach floating IP from headnode
       openstack.cloud.floating_ip:
-        cloud: "{{ cloud_name }}"
         state: absent
         floating_ip_address: "{{ inventory_hostname }}"
         network: "{{ cluster_network_floating_ip_pool }}"
