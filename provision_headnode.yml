@@ -64,12 +64,6 @@
         state: restarted
         enabled: true
 
-    - name: restart autofs
-      service:
-        name: autofs
-        state: restarted
-        enabled: true
-
     - name: restart rpcbind
       service:
         name: rpcbind
@@ -79,12 +73,6 @@
     - name: restart nfs-server
       service:
         name: nfs-server
-        state: restarted
-        enabled: true
-
-    - name: restart postfix
-      service:
-        name: postfix
         state: restarted
         enabled: true
 
@@ -98,46 +86,6 @@
       notify: restart sshd
 
     - meta: flush_handlers
-
-    - name: Update .inputrc (user)
-      lineinfile:
-        path: "/home/{{ image_init_user }}/.inputrc"
-        line: "{{ item }}"
-        owner: "{{ image_init_user }}"
-        group: "{{ image_init_user }}"
-        create: yes
-      loop:
-        - '"\e[A":history-search-backward'
-        - '"\e[B":history-search-forward'
-        - '"\e[1;5C": forward-word'
-        - '"\e[1;5D": backward-word'
-        - '"\e[5C": forward-word'
-        - '"\e[5D": backward-word'
-        - '"\e\e[C": forward-word'
-        - '"\e\e[D": backward-word'
-
-    - name: Update .inputrc (root)
-      lineinfile:
-        path: "/root/.inputrc"
-        line: "{{ item }}"
-        create: yes
-      loop:
-        - '"\e[A":history-search-backward'
-        - '"\e[B":history-search-forward'
-        - '"\e[1;5C": forward-word'
-        - '"\e[1;5D": backward-word'
-        - '"\e[5C": forward-word'
-        - '"\e[5D": backward-word'
-        - '"\e\e[C": forward-word'
-        - '"\e\e[D": backward-word'
-
-    - name: Create /local directory
-      file:
-        path: /local
-        state: directory
-        owner: root
-        group: root
-        mode: 0777
 
     - name: Ensures ~/.config/openstack dir exists
       file:
@@ -156,20 +104,6 @@
 
     - import_tasks: tasks/install_oneapi.yml
       when: install_intel_oneapi
-
-    - import_tasks: tasks/install_openvpn.yml
-
-#    - import_tasks: tasks/mount_cloud_volumes.yml
-
-#    - import_tasks: tasks/mount_additional_volumes.yml
-
-    - import_tasks: tasks/install_conda.yml
-
-    - import_tasks: tasks/configure_lmod.yml
-
-    - import_tasks: tasks/configure_ldap_client.yml
-
-#    - import_tasks: tasks/restore_home.yml
 
     - name: Increase memlock
       blockinfile:
@@ -341,11 +275,6 @@
         nfs_exports:
           - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-#          - "/mnt/biocomp {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-#          - "/mnt/biocomp-lab {{ cluster_network_cidr }}(rw,sync,no_root_squash,no_subtree_check)"
-#          - "/db {{ cluster_network_cidr }}(fsid=10,rw,sync,no_root_squash,no_subtree_check)"
-#          - "/software {{ cluster_network_cidr }}(fsid=11,rw,sync,no_root_squash,no_subtree_check)"
-#          - "/projects {{ cluster_network_cidr }}(fsid=12,rw,sync,no_root_squash,no_subtree_check)"
 
   tasks:
     - name: Flush handlers before detaching floating IP

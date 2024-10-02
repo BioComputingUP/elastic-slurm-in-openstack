@@ -29,7 +29,6 @@
   dnf: 
     name: "{{ head_node_user_packages }}"
     state: present
-  notify: restart postfix
 
 - name: Install firewalld
   dnf:
