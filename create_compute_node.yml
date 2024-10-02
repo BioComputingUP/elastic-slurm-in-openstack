@@ -96,21 +96,9 @@
         state: restarted
         enabled: true
 
-    - name: restart autofs
-      service:
-        name: autofs
-        state: restarted
-        enabled: true
-
     - name: restart rpcbind
       service:
         name: rpcbind
-        state: restarted
-        enabled: true
-
-    - name: restart nfs-server
-      service:
-        name: nfs-server
         state: restarted
         enabled: true
 
@@ -127,8 +115,6 @@
 
     - import_tasks: tasks/install_compute_packages.yml
 
-    - import_tasks: tasks/configure_ldap_client.yml
-
     - name: Configure compute node to send syslog to head node
       blockinfile:
         path: "/etc/rsyslog.conf"
@@ -137,14 +123,6 @@
           *.* @{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:514
           action(type="omfwd" Target="{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}" Port="514" Protocol="udp")
 
-    - name: Create /local directory
-      file:
-        path: /local
-        state: directory
-        owner: root
-        group: root
-        mode: 0777
-
     - name: Add home directory mount to /etc/fstab
       ansible.posix.mount:
         path: /home
@@ -152,7 +130,6 @@
         fstype: nfs
         state: mounted
 
-    # maybe this is not needed with state: mounted
     - name: Create /opt/ohpc/pub
       file:
         path: /opt/ohpc/pub
@@ -183,8 +160,6 @@
         line: "{{ hostvars['localhost'].headnode.openstack_servers[0].private_v4 }}:/opt/intel /opt/intel nfs nfsvers=3,nodev 0 0"
         state: mounted
       when: install_intel_oneapi
-
-    - import_tasks: tasks/mount_headnode_volumes.yml
 
     - name: Setup configless slurmd
       lineinfile:
