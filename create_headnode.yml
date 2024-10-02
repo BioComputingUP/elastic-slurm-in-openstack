@@ -43,7 +43,6 @@
   tasks:
     - name: wait for head node to boot and become reachable
       wait_for_connection:
-#        timeout: 10
 
     - debug:
         msg: "{{ cluster_name }} head node is up at {{ hostvars['localhost'].headnode.openstack_servers[0].accessIPv4 }}."
