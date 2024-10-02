@@ -84,7 +84,7 @@ compute_node_tmpdisk_size_mb: 20480
 compute_node_realmemory_size_mb: 14336
 # Max number of compute nodes. Need to rebuild compute image after
 # changing this value
-max_compute_nodes: 10
+max_compute_nodes: 5
 # Number of seconds slurm waits before deleting an idle compute node
 # instance
 slurm_suspend_time: 1800
