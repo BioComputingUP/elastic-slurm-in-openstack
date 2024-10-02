@@ -41,6 +41,9 @@ head_node_user_packages:
   - fftw-gnu12-openmpi4-ohpc
   - hypre-gnu12-openmpi4-ohpc
   - scalapack-gnu12-openmpi4-ohpc
+  - EasyBuild-ohpc
+  - R-gnu12-ohpc
+  - singularity-ohpc
 
 mysql_user: slurm
 mysql_password: slurmdb
