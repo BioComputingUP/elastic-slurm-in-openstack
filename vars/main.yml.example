@@ -64,6 +64,7 @@ cluster_security_group: default
 cluster_network_name: "{{ cluster_name }}-net"
 cluster_network_cidr: 10.x.x.0/24
 cluster_network_floating_ip_pool: Unipd-WAN
+# Needed to access VM via ssh tunnel or VPN
 cluster_network_private_ip: x.x.x.x
 #
 # Compute imaging instance: the instance create_compute_image.yml playbook
