@@ -57,15 +57,16 @@ keypair_name: "{{ cluster_name }}-key"
 ssh_public_keyfile: cloudveneto.pub
 ssh_private_keyfile: cloudveneto.pem
 cluster_security_group: default
+proxy_user: cv_user
+proxy_server: gate.cloudveneto.it
+proxy_private_keyfile: proxy.pem
 
 #
 # Networking
 #
 cluster_network_name: "{{ cluster_name }}-net"
 cluster_network_cidr: 10.x.x.0/24
-cluster_network_floating_ip_pool: Unipd-WAN
-# Needed to access VM via ssh tunnel or VPN
-cluster_network_private_ip: x.x.x.x
+
 #
 # Compute imaging instance: the instance create_compute_image.yml playbook
 # uses to create compute node image.

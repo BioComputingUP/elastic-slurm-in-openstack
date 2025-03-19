@@ -11,10 +11,85 @@ Run the `install_ansible.sh` command:
 ```bash
 ./install_ansible.sh
 ```
-## Deploy Slurm Cluster
-### Enable a floating IP for the headnode
-Create a floating IP and ask to open port 22 to it. Don't associate it to a VM.
 
+### Configure CloudVeneto gateway (Gate) for SSH access
+For this you should have a CloudVeneto account and access to the Gate machine (`cv_user` and `cv_pass`):
+```bash
+# generate a new key pair locally (preferably with passphrase). Skip and adapt if you already have a key pair:
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_vm
+
+# copy the public key to Gate machine (it will ask for cv_pass):
+cat ~/.ssh/id_ed25519_vm.pub | \
+  ssh cv_user@gate.cloudveneto.it 'cat >id_ed25519_vm.pub && \
+  mkdir -p .ssh && \
+  chmod 700 .ssh && \
+  mv id_ed25519_vm.pub .ssh/id_ed25519_vm.pub && \
+  cat .ssh/id_ed25519_vm.pub >>.ssh/authorized_keys'
+
+# copy the private key to Gate machine (it will ask for cv_pass):
+cat ~/.ssh/id_ed25519_vm | \
+  ssh cv_user@gate.cloudveneto.it \
+  'cat >.ssh/id_ed25519_vm && chmod 600 .ssh/id_ed25519_vm'
+
+# connect to Gate machine (it will ask for SSH key passphrase, if used):
+ssh -i ~/.ssh/id_ed25519_vm cv_user@gate.cloudveneto.it
+```
+If you have also the credentials and IP of a VM running in the cloud (`vm_user`, `vm_pass`, `vm_ip`), you can import the key pair to it:
+```bash
+# copy the public key from the Gate machine to VM (it will ask for vm_pass)
+cat ~/.ssh/id_ed25519_vm.pub | \
+  ssh vm_user@vm_ip 'cat >.ssh/id_ed25519_vm.pub && \
+  cat .ssh/id_ed25519_vm.pub >>.ssh/authorized_keys'
+
+# test connection to VM from Gate machine (it will ask for SSH passphrase, if used)
+ssh -i ~/.ssh/id_ed25519_vm vm_user@vm_ip
+exit
+```
+Accessing a VM from your local machine requires proxying the SSH connection through the CloudVeneto Gate. You can achieve this by using the following SSH command:
+```bash
+# (optionally) add key to ssh-agent (it may ask for SSH key passphrase)
+ssh-add ~/.ssh/id_ed25519_vm
+
+# connect to VM via proxy
+ssh -i ~/.ssh/id_ed25519_vm \
+  -o StrictHostKeyChecking=accept-new \
+  -o ProxyCommand="ssh -i ~/.ssh/id_ed25519_vm \
+  -W %h:%p cv_user@gate.cloudveneto.it" \
+  vm_user@vm_ip
+```
+You can simplify the SSH connection to VM by configuring your SSH config file:
+```bash
+# update ssh config with proxy and headnode
+cat <<EOF | tee -a ~/.ssh/config
+
+Host cvgate
+	HostName gate.cloudveneto.it
+	User cv_user
+	IdentityFile ~/.ssh/id_ed25519_vm
+
+Host vm
+	HostName vm_ip
+	User vm_user
+	IdentityFile ~/.ssh/id_ed25519_vm
+	UserKnownHostsFile /dev/null
+	StrictHostKeyChecking=accept-new
+	ProxyJump cvgate
+EOF
+```
+Test the connection:
+```bash
+# connect to VM
+ssh vm
+
+# copy files to and from VM with scp
+scp localdir/file vm:remotedir/
+scp vm:remotedir/file localdir/
+# or rsync
+rsync -ahv localdir/ vm:remotedir/
+rsync -ahv vm:remotedir/ localdir/
+```
+
+## Deploy Slurm Cluster
 ### Download latest Rocky Linux 8 image
 ```bash
 wget https://dl.rockylinux.org/pub/rocky/8/images/x86_64/Rocky-8-GenericCloud-Base.latest.x86_64.qcow2

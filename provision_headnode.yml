@@ -275,14 +275,3 @@
         nfs_exports:
           - "/home {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
           - "/opt/ohpc/pub {{ cluster_network_cidr }}(rw,sync,no_root_squash)"
-
-  tasks:
-    - name: Flush handlers before detaching floating IP
-      meta: flush_handlers
-
-    - name: Detach floating IP from headnode
-      openstack.cloud.floating_ip:
-        state: absent
-        floating_ip_address: "{{ inventory_hostname }}"
-        network: "{{ cluster_network_floating_ip_pool }}"
-        server: "{{ head_node_name }}"

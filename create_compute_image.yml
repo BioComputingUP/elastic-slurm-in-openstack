@@ -10,14 +10,6 @@
         server: "{{ cluster_name }}-compute-imaging"
       register: server_info
 
-    - name: Detach floating IP from compute imaging instance
-      openstack.cloud.floating_ip:
-        state: absent
-        floating_ip_address: "{{ server_info.openstack_servers[0].public_v4 }}"
-        network: "{{ cluster_network_floating_ip_pool }}"
-        server: "{{ cluster_name }}-compute-imaging"
-      when: server_info.openstack_servers[0] is defined
-
     - name: Shut down compute imaging instance
       openstack.cloud.server_action:
         server: "{{ cluster_name }}-compute-imaging"
@@ -29,7 +21,7 @@
         name: "{{ cluster_name }}-compute-imaging"
         state: absent
 
-    - name: Wait for the compute image volume is detached
+    - name: Wait until the compute image volume detaches
       openstack.cloud.volume_info:
         name: "{{ compute_node_image }}"
         details: true
