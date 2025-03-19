@@ -99,4 +99,4 @@ job_max_time: 86400
 slurmctld_log_debug: debug
 # slurmd log debug levels: quiet, fatal, error, info, verbose, debug,
 # debug2, debug3, debug4, debug5
-slurmd_log_debug: debug3
+slurmd_log_debug: debug
