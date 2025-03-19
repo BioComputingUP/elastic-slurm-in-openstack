@@ -1,7 +1,13 @@
 #!/bin/bash
 
-python3 -m venv ansible
-source ./ansible/bin/activate
+# This Ansible repo needs Python 3.10
+# using conda:
+# conda create -y -n ansible-openstack python=3.10
+# conda activate ansible-openstack
+# or better using pyenv:
+# pyenv virtualenv 3.10 ansible-openstack
+# pyenv local ansible-openstack
+# pyenv activate ansible-openstack
 
 pip install --upgrade pip wheel
 pip install --upgrade \
@@ -15,4 +21,4 @@ pip install --upgrade \
   python-openstackclient==5.4.0 \
   keystoneauth1==5.5.0
 
-ansible-galaxy install -r requirements.yml
+ansible-galaxy install -r requirements.yml --force
