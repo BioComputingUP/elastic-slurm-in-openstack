@@ -159,3 +159,83 @@ Delete all cloud resources with:
 ansible-playbook destroy_cluster.yml
 ```
 
+## Usage examples
+### Connect to the head node
+Connect to the head node of your Slurm cluster via SSH using the CloudVeneto proxy machine. 
+Replace the SSH key with your proxy or OpenStack cloud key, `cv_user` with your proxy machine username and 
+`headnode_ip` with the private IP of the head node.
+
+```bash
+ssh -i ~/.ssh/id_ed25519_vm \
+  -o StrictHostKeyChecking=accept-new \
+  -o ProxyCommand="ssh -i ~/.ssh/id_ed25519_vm \
+  -W %h:%p cv_user@gate.cloudveneto.it" \
+  rocky@headnode_ip
+```
+
+### Check Slurm status
+Show Slurm nodes and partitions info:
+```bash
+sinfo
+```
+Show jobs and scheduling info:
+```bash
+squeue -al
+```
+Monitor continuously Slurm queues and job status:
+```bash
+watch -d "\
+  sinfo -N -S '-P' -o '%8N %9P %.5T %.13C %.8O %.8e %.6m %.8d %.6w %.8f %20E'|cut -c-\$COLUMNS; echo; echo; \
+  squeue --format='%12i %10j %6u %8N %4P %4C %7m %8M %10T %16R %o'|cut -c-\$COLUMNS; echo; echo; \
+  sacct -X -a --format JobID,User,JobName,Partition,AllocCPUS,State,ExitCode,End,ElapsedRaw|tail|tac|grep -v 'JobID\|^---'|awk 'BEGIN{print \"       JobID      User    JobName  Partition  AllocCPUS      State ExitCode                 End ElapsedRaw\n------------ --------- ---------- ---------- ---------- ---------- -------- ------------------- ----------\"}{print}'|cut -c-\$COLUMNS"
+```
+
+### Submit test jobs
+Run a quick test job:
+```bash
+sbatch --wrap 'sleep 10'
+```
+Submit a (stupid) CPU intensive task with two threads in parallel:
+```bash
+# create work folder
+mkdir slurm-test && cd slurm-test
+
+# create simple.sh worker script
+cat <<'EOF' | tee simple.sh
+#!/bin/bash
+#SBATCH -J simplejob
+#SBATCH -o "%x"."%A"."%a".out
+#SBATCH -e "%x"."%A"."%a".err
+#SBATCH --mail-type=ALL
+echo -e "$(date)\tStarting job $SLURM_JOB_ID:$SLURM_ARRAY_TASK_ID on $SLURMD_NODENAME ..."
+if [ -n "$1" ]; then
+    rnd=$1
+else
+    rnd=$(shuf -i 5-30 -n 1)
+fi
+echo "working for $rnd s ...";
+yes > /dev/null &
+ypid=$!
+yes > /dev/null &
+ypid2=$!
+sleep $rnd
+echo "killing job $ypid ..."
+{ kill $ypid && wait $ypid; } 2>/dev/null
+echo "killing job $ypid2 ..."
+{ kill $ypid2 && wait $ypid2; } 2>/dev/null
+echo “all done, exiting with 0”
+ex=$?
+echo -e "$(date)\tJob $SLURM_JOB_ID:$SLURM_ARRAY_TASK_ID ended with $ex"
+exit $ex
+EOF
+
+# submit as an array job allocating 2 CPUs per job (max runtime of 1min; max 1G memory per job)
+rm -f *.{err,out}; sbatch -n2 -a 1-5 --time 1 --mem=1G simple.sh
+
+# these longer jobs should timeout
+rm -f *.{err,out}; sbatch -n2 -a 1-5 --time 1 --mem=1G simple.sh 120
+```
+Allocate an interactive session on a compute node (type `exit` to return back to head node):
+```bash
+salloc --time 1-0
+```
