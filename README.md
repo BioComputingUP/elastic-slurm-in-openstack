@@ -8,7 +8,7 @@ adapted for use with [CloudVeneto](https://cloudveneto.ict.unipd.it/) OpenStack 
 
 Run the following Ansible playbooks on your local PC, not on a Virtual Machine in the OpenStack cloud. 
 Ensure your local machine is set up with the necessary keys and access credentials for the target OpenStack environment. 
-Once the playbooks are executed, you'll have access to your personal elastic Slurm cluster in the cloud.
+Once the playbooks are executed, you'll have access to your personal and private elastic Slurm cluster in the cloud.
 
 ## Prerequisites
 ### Install Ansible
