@@ -2,8 +2,13 @@
 These Ansible playbooks create and manage a dynamically allocated (elastic) Slurm cluster in an OpenStack cloud.
 The cluster is based on CentOS 8 (Rocky 8) and [OpenHPC 2.x](https://openhpc.community/downloads/). Slurm configurations are based on the work contained 
 in [Jetstream_Cluster](https://github.com/XSEDE/CRI_Jetstream_Cluster).
+
 This repo is based on the project [slurm-cluster-in-openstack](https://github.com/CornellCAC/slurm-cluster-in-openstack)
 adapted for use with [CloudVeneto](https://cloudveneto.ict.unipd.it/) OpenStack cloud.
+
+Run the following Ansible playbooks on your local PC, not on a Virtual Machine in the OpenStack cloud. 
+Ensure your local machine is set up with the necessary keys and access credentials for the target OpenStack environment. 
+Once the playbooks are executed, you'll have access to your personal elastic Slurm cluster in the cloud.
 
 ## Prerequisites
 ### Install Ansible
